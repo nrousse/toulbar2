@@ -203,6 +203,9 @@ int ToulBar2::minProperVarSize;
 
 int ToulBar2::smallSeparatorSize;
 
+int ToulBar2::heuristicFreedom;
+int ToulBar2::heuristicFreedomLimit;
+
 bool ToulBar2::isZ;
 TLogProb ToulBar2::logZ;
 TLogProb ToulBar2::logU;
@@ -394,6 +397,9 @@ void tb2init()
     ToulBar2::minProperVarSize = 0;
 
     ToulBar2::smallSeparatorSize = 4;
+
+    ToulBar2::heuristicFreedom = 0;
+    ToulBar2::heuristicFreedomLimit = 0;
 
     ToulBar2::isZ = false;
     ToulBar2::logZ = -numeric_limits<TLogProb>::infinity();
@@ -4334,7 +4340,7 @@ void WCSP::restoreSolution(Cluster* c)
         EnumeratedVariable* z = (EnumeratedVariable*)ei.z;
         assert(x);
         assert(x->assigned());
-        if (c && !c->isVar(x->wcspIndex))
+        if (c && ((!c->getFreedom() && !c->isVar(x->wcspIndex)) || (c->getFreedom() && !c->isVarTree(x->wcspIndex))))
             continue;
         if (y && y->unassigned())
             continue;
