@@ -1604,7 +1604,9 @@ pair<Cost, Cost> Solver::hybridSolve(Cluster* cluster, Cost clb, Cost cub)
         clb = MAX(clb, open_->getLb(delta));
         if (ToulBar2::verbose >= 1 && cluster)
             cout << "hybridSolve-2 C" << cluster->getId() << " " << clb << " " << cub << " " << delta << " " << open_->size() << " " << open_->top().getCost(delta) << " " << open_->getClosedNodesLb(delta) << " " << open_->getUb(delta) << endl;
-        while (clb < cub && !open_->finished() && (!cluster || (clb == initiallb && cub == initialub && nbBacktracks <= cluster->hbfsGlobalLimit)) && !(cluster && cluster->getFreedom() && cluster->getInterrupt())) {
+        while (clb < cub && !open_->finished() &&
+                (!cluster || (clb == initiallb && cub == initialub && nbBacktracks <= cluster->hbfsGlobalLimit)) &&
+                !(cluster && cluster->getFreedom() && cluster->getInterrupt())) {
             if (cluster) {
                 cluster->hbfsLimit = ((ToulBar2::hbfs > 0) ? (cluster->nbBacktracks + ToulBar2::hbfs) : LONGLONG_MAX);
                 assert(wcsp->getTreeDec()->getCurrentCluster() == cluster);
@@ -2660,7 +2662,9 @@ void Solver::restore(CPStore& cp, OpenNode nd)
     unsigned int size = 0;
     for (ptrdiff_t idx = nd.first; idx < nd.last; ++idx) {
         assert((size_t)idx < cp.size());
-        assert(!wcsp->getTreeDec() || wcsp->getTreeDec()->getCurrentCluster()->isVar(cp[idx].varIndex) || (wcsp->getTreeDec()->getCurrentCluster()->getFreedom() && wcsp->getTreeDec()->getCurrentCluster()->isVarTree(cp[idx].varIndex)));
+        assert(!wcsp->getTreeDec() ||
+                wcsp->getTreeDec()->getCurrentCluster()->isVar(cp[idx].varIndex) ||
+                (wcsp->getTreeDec()->getCurrentCluster()->getFreedom() && wcsp->getTreeDec()->getCurrentCluster()->isVarTree(cp[idx].varIndex)));
         if ((cp[idx].op == CP_ASSIGN && !(cp[idx].reverse && idx < nd.last - 1)) || (cp[idx].op == CP_REMOVE && cp[idx].reverse && idx < nd.last - 1)) {
             assignLS[size] = cp[idx].varIndex;
             valueLS[size] = cp[idx].value;
