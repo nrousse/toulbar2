@@ -104,6 +104,7 @@ bool ToulBar2::lastConflict;
 int ToulBar2::dichotomicBranching;
 unsigned int ToulBar2::dichotomicBranchingSize;
 bool ToulBar2::sortDomains;
+int ToulBar2::constrOrdering;
 map<int, ValueCost*> ToulBar2::sortedDomains;
 bool ToulBar2::solutionBasedPhaseSaving;
 int ToulBar2::lds;
@@ -307,6 +308,7 @@ void tb2init()
     ToulBar2::dichotomicBranching = 1;
     ToulBar2::dichotomicBranchingSize = 10;
     ToulBar2::sortDomains = false;
+    ToulBar2::constrOrdering = CONSTR_ORDER_DAC;
     ToulBar2::solutionBasedPhaseSaving = true;
     ToulBar2::lds = 0;
     ToulBar2::limited = false;
@@ -645,15 +647,12 @@ WCSP::WCSP(Cost upperBound, void* _solver_)
     , nbDEE(0)
     , lastConflictConstr(NULL)
     , maxdomainsize(0)
-    ,
 #ifdef NUMBERJACK
-    isDelayedNaryCtr(false)
-    ,
+    , isDelayedNaryCtr(false)
 #else
-    isDelayedNaryCtr(true)
-    ,
+    , isDelayedNaryCtr(true)
 #endif
-    isPartOfOptimalSolution(0)
+    , isPartOfOptimalSolution(0)
     , elimOrder(0)
     , elimBinOrder(0)
     , elimTernOrder(0)
@@ -2063,7 +2062,7 @@ int WCSP::postKnapsackConstraint(int* scopeIndex, int arity, istream& file, bool
         if (ToulBar2::verbose >= 3) cout << "Knapsack constraint of arity " << arity << " transformed into clause!" << endl;
         cc = new WeightedClause(this, scopeVars.data(), arity, getUb(), clausetuple);
     } else{
-        cc = new KnapsackConstraint(this, scopeVars.data(), arity, capacity, weights, MaxWeight,VarVal,NotVarVal);
+        cc = new KnapsackConstraint(this, scopeVars.data(), arity, capacity, weights, MaxWeight, VarVal, NotVarVal);
     }
     if (isDelayedNaryCtr)
         delayedNaryCtr.push_back(cc->wcspIndex);
@@ -2567,6 +2566,11 @@ void WCSP::sortConstraints()
                 bctr = new VACBinaryConstraint(this);
             elimBinConstrs.push_back(bctr);
         }
+    }
+    if (abs(ToulBar2::constrOrdering) == CONSTR_ORDER_RANDOM) {
+        shuffle(delayedNaryCtr.begin(), delayedNaryCtr.end(), myrandom_generator);
+    } else {
+        stable_sort(delayedNaryCtr.begin(), delayedNaryCtr.end(), [&](int idx1, int idx2){ return Constraint::cmpConstraint(getCtr(idx1), getCtr(idx2)); });
     }
     for (vector<int>::iterator idctr = delayedNaryCtr.begin(); idctr != delayedNaryCtr.end(); ++idctr) {
         getCtr(*idctr)->propagate();
@@ -3532,8 +3536,8 @@ void WCSP::dump_CFN(ostream& os, bool original)
             int size = vars[i]->getDomainSize();
             ValueCost domcost[size]; // replace size by MAX_DOMAIN_SIZE in case of compilation problem
             getEnumDomainAndCost(i, domcost);
-            os << "\"F_" << ((original) ? i : vars[i]->getCurrentVarId()) << "\":{\"scope\":[";
-            os << vars[i]->getName() << "],\"defaultcost\":" << getDPrimalBound() - negCost << ",\n";
+            os << "\"F_" << ((original) ? i : vars[i]->getCurrentVarId()) << "\":{\"scope\":[\"";
+            os << vars[i]->getName() << "\"],\"defaultcost\":" << getDPrimalBound() - negCost << ",\n";
             os << "\"costs\":[";
             for (int v = 0; v < size; v++) {
                 os << ((original) ? (((EnumeratedVariable*)vars[i])->toIndex(domcost[v].value)) : v) << ","
