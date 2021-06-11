@@ -47,5 +47,23 @@ RUN apt-get update -yq \
 && pip3 install pybind11 \
 && apt-get clean -y
 
+RUN git clone https://github.com/toulbar2/toulbar2.git
+RUN cd toulbar2 \
+&& mkdir build \
+&& cd build \
+&& cmake -DPYTB2=ON .. \
+&& make
+
+RUN CMDFILE=/WS.sh \
+&& echo "#!/bin/bash" > $CMDFILE \
+&& chmod 755 $CMDFILE \
+&& echo "#####################################################" >> $CMDFILE \
+&& echo "# Init to work into /WS folder with pytoulbar2"        >> $CMDFILE \
+&& echo "#####################################################" >> $CMDFILE \
+&& echo "PATH=\$PATH:/toulbar2/build/bin/Linux:/toulbar2/src"   >> $CMDFILE \
+&& echo "ln -s /toulbar2/build/lib/Linux/pytoulbar2.cpython-37m-x86_64-linux-gnu.so /WS/pytoulbar2.cpython-37m-x86_64-linux-gnu.so"             >> $CMDFILE \
+&& echo "ln -s /toulbar2/web/TUTORIALS/CFN.py /WS/CFN.py"       >> $CMDFILE \
+&& echo "cd /WS"                                                >> $CMDFILE
+
 ###############################################################################
 
