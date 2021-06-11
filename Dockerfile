@@ -54,13 +54,6 @@ RUN cd toulbar2 \
 && cmake -DPYTB2=ON .. \
 && make
 
-
-RUN echo "MISE AU POINT" \
-&& ls -l /toulbar2/build/lib/Linux \
-&& ls -l /toulbar2/web/TUTORIALS \
-&& ls -l /toulbar2/pytoulbar2
-
-
 RUN CMDFILE=/WS.sh \
 && echo "#!/bin/bash" > $CMDFILE \
 && chmod 755 $CMDFILE \
@@ -68,9 +61,8 @@ RUN CMDFILE=/WS.sh \
 && echo "# Init to work into /WS folder with pytoulbar2"        >> $CMDFILE \
 && echo "#####################################################" >> $CMDFILE \
 && echo "PATH=\$PATH:/toulbar2/build/bin/Linux:/toulbar2/src"   >> $CMDFILE \
-&& echo "ln -s /toulbar2/build/lib/Linux/pytoulbar2.cpython-37m-x86_64-linux-gnu.so /WS/pytoulbar2.cpython-37m-x86_64-linux-gnu.so"             >> $CMDFILE \
+&& echo "ln -s /toulbar2/build/lib/Linux/pytb2.cpython-37m-x86_64-linux-gnu.so /WS/pytb2.cpython-37m-x86_64-linux-gnu.so"                       >> $CMDFILE \
 && echo "ln -s /toulbar2/pytoulbar2/pytoulbar2.py /WS/pytoulbar2.py" >> $CMDFILE \
-&& echo "ln -s /toulbar2/web/TUTORIALS/CFN.py /WS/CFN.py"       >> $CMDFILE \
 && echo "cd /WS"                                                >> $CMDFILE
 
 ###############################################################################
