@@ -54,6 +54,13 @@ RUN cd toulbar2 \
 && cmake -DPYTB2=ON .. \
 && make
 
+
+RUN echo "MISE AU POINT" \
+&& ls -l /toulbar2/build/lib/Linux \
+&& ls -l /toulbar2/web/TUTORIALS \
+&& ls -l /toulbar2/pytoulbar2 \
+
+
 RUN CMDFILE=/WS.sh \
 && echo "#!/bin/bash" > $CMDFILE \
 && chmod 755 $CMDFILE \
