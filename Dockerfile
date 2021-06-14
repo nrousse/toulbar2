@@ -54,7 +54,9 @@ RUN cd toulbar2 \
 && cmake -DPYTB2=ON .. \
 && make
 
-RUN cp /toulbar2/build/lib/Linux/pytb2.cpython-37m-x86_64-linux-gnu.so /toulbar2/pytoulbar2/pytb2.cpython-37m-x86_64-linux-gnu.so
+RUN mkdir /toulbar2/pytoulbar2/pytoulbar2 \
+&& touch /toulbar2/pytoulbar2/pytoulbar2/__init__.py \
+&& cp /toulbar2/build/lib/Linux/pytb2.cpython-37m-x86_64-linux-gnu.so /toulbar2/pytoulbar2/pytoulbar2/pytb2.cpython-37m-x86_64-linux-gnu.so
 
 RUN CMDFILE=/WS.sh \
 && echo "#!/bin/bash" > $CMDFILE \
