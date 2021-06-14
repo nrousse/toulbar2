@@ -65,9 +65,7 @@ RUN CMDFILE=/WS.sh \
 && echo "#####################################################" >> $CMDFILE \
 && echo "# Init to work into /WS folder with pytoulbar2"        >> $CMDFILE \
 && echo "#####################################################" >> $CMDFILE \
-&& echo "PATH=\$PATH:/toulbar2/pytoulbar2:/toulbar2/src"        >> $CMDFILE \
-&& echo "PYTHONPATH=$PYTHONPATH:/toulbar2/pytoulbar2"           >> $CMDFILE \
-&& echo "export PYTHONPATH"                                     >> $CMDFILE \
+&& echo "PATH=\$PATH:/toulbar2/build/bin/Linux:/toulbar2/src"   >> $CMDFILE \
 && echo "cd /WS"                                                >> $CMDFILE
 
 ###############################################################################
