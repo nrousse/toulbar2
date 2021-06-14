@@ -54,9 +54,10 @@ RUN cd toulbar2 \
 && cmake -DPYTB2=ON .. \
 && make
 
-RUN mkdir /toulbar2/pytoulbar2/pytoulbar2 \
+RUN cp /toulbar2/pytoulbar2/pytoulbar2.py /toulbar2/pytoulbar2/pytb2.py \
+&& mkdir /toulbar2/pytoulbar2/pytoulbar2 \
 && touch /toulbar2/pytoulbar2/pytoulbar2/__init__.py \
-&& cp /toulbar2/build/lib/Linux/pytb2.cpython-37m-x86_64-linux-gnu.so /toulbar2/pytoulbar2/pytoulbar2/pytb2.cpython-37m-x86_64-linux-gnu.so
+&& cp /toulbar2/build/lib/Linux/pytb2.cpython-37m-x86_64-linux-gnu.so /toulbar2/pytoulbar2/pytoulbar2/pytb2.cpython-37m-x86_64-linux-gnu.so \
 
 RUN CMDFILE=/WS.sh \
 && echo "#!/bin/bash" > $CMDFILE \
@@ -66,6 +67,7 @@ RUN CMDFILE=/WS.sh \
 && echo "#####################################################" >> $CMDFILE \
 && echo "PATH=\$PATH:/toulbar2/pytoulbar2:/toulbar2/src"        >> $CMDFILE \
 && echo "PYTHONPATH=$PYTHONPATH:/toulbar2/pytoulbar2"           >> $CMDFILE \
+&& echo "export PYTHONPATH"                                     >> $CMDFILE \
 && echo "cd /WS"                                                >> $CMDFILE
 
 ###############################################################################
