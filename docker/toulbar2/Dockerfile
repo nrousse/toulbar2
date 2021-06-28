@@ -12,12 +12,12 @@
 #
 # Work inside -----------------------------------------------------------------
 #
-# Then to work inside pytoulbar2-docker image, under /WS 
+# Then to work inside pytoulbar2-docker image, under /WORK 
 # (as local folder to remaining results) :
 #
-#   docker run -v $PWD:/WS -ti pytoulbar2-docker /bin/bash
+#   docker run -v $PWD:/WORK -ti pytoulbar2-docker /bin/bash
 #
-#   and once inside : source /WS.sh
+#   and once inside : source /WORK.sh
 #
 # Note :
 #
@@ -54,19 +54,18 @@ RUN cd toulbar2 \
 && cmake -DPYTB2=ON .. \
 && make
 
-RUN cp /toulbar2/pytoulbar2/pytoulbar2.py /toulbar2/pytoulbar2/pytb2.py \
-&& mkdir /toulbar2/pytoulbar2/pytoulbar2 \
-&& touch /toulbar2/pytoulbar2/pytoulbar2/__init__.py \
-&& cp /toulbar2/build/lib/Linux/pytb2.cpython-37m-x86_64-linux-gnu.so /toulbar2/pytoulbar2/pytoulbar2/pytb2.cpython-37m-x86_64-linux-gnu.so
+RUN cp /toulbar2/build/lib/Linux/pytb2.cpython-37m-x86_64-linux-gnu.so /toulbar2/pytoulbar2/pytb2.cpython-37m-x86_64-linux-gnu.so
 
-RUN CMDFILE=/WS.sh \
+RUN CMDFILE=/WORK.sh \
 && echo "#!/bin/bash" > $CMDFILE \
 && chmod 755 $CMDFILE \
 && echo "#####################################################" >> $CMDFILE \
-&& echo "# Init to work into /WS folder with pytoulbar2"        >> $CMDFILE \
+&& echo "# Init to work into /WORK folder with (py)toulbar2   " >> $CMDFILE \
 && echo "#####################################################" >> $CMDFILE \
-&& echo "PATH=\$PATH:/toulbar2/build/bin/Linux:/toulbar2/src"   >> $CMDFILE \
-&& echo "cd /WS"                                                >> $CMDFILE
+&& echo "PATH=\$PATH:/toulbar2/build/bin/Linux:/toulbar2/src:/WORK" >> $CMDFILE \
+&& echo "ln -s /toulbar2/pytoulbar2 /WORK/pytoulbar2"           >> $CMDFILE \
+&& echo "cd /WORK"                                              >> $CMDFILE
+
 
 ###############################################################################
 
