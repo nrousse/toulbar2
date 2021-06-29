@@ -47,13 +47,9 @@ RUN apt-get update -yq \
 && pip3 install pybind11 \
 && apt-get clean -y
 
-#RUN git clone https://github.com/toulbar2/toulbar2.git
-#RUN cd toulbar2 \
-#&& mkdir build \
-#&& cd build \
-#&& cmake -DPYTB2=ON .. \
-#&& make
-RUN cd /toulbar2 \
+#!!! enlever le git clone
+RUN git clone https://github.com/toulbar2/toulbar2.git
+RUN cd toulbar2 \
 && mkdir build \
 && cd build \
 && cmake -DPYTB2=ON .. \
