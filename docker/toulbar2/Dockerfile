@@ -53,7 +53,7 @@ RUN apt-get update -yq \
 #&& cd build \
 #&& cmake -DPYTB2=ON .. \
 #&& make
-RUN cd toulbar2 \
+RUN cd /toulbar2 \
 && mkdir build \
 && cd build \
 && cmake -DPYTB2=ON .. \
