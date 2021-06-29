@@ -21,8 +21,6 @@
 #
 #   docker run -v $PWD:/WORK -ti pytoulbar2-docker /bin/bash
 #
-#   and once inside : source /WORK.sh
-#
 # Note :
 #
 # - To build pytoulbar2.simg from pytoulbar2-docker image :
@@ -30,7 +28,8 @@
 #
 ###############################################################################
 
-FROM debian:buster-slim
+#FROM debian:buster-slim
+FROM ubuntu-latest
 
 RUN apt-get update -yq \
 && apt-get install git-core -y \
