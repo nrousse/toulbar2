@@ -1,8 +1,8 @@
 ###############################################################################
 # 
-#              Dockerfile container for pytoulbar2 software
+#                       Dockerfile container 
 # 
-#             including toulbar2 and its pytoulbar2 Python API
+#           dedicated to pytoulbar2 Python API of toulbar2
 # 
 # Build -----------------------------------------------------------------------
 #
@@ -28,6 +28,8 @@
 
 FROM debian:buster-slim
 
+# !! RUN a MODIFIER (pip install...)
+
 RUN apt-get update -yq \
 && apt-get install git-core -y \
 && apt-get install vim -y \
@@ -47,6 +49,7 @@ RUN apt-get update -yq \
 && pip3 install pybind11 \
 && apt-get clean -y
 
+# 'git clone' remains ?
 RUN git clone https://github.com/toulbar2/toulbar2.git
 RUN cd toulbar2 \
 && mkdir build \

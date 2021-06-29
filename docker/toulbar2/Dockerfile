@@ -1,28 +1,28 @@
 ###############################################################################
 # 
-#              Dockerfile container for pytoulbar2 software
+#                       Dockerfile container 
 # 
-#             including toulbar2 and its pytoulbar2 Python API
+#           including toulbar2 and its pytoulbar2 Python API
 # 
 # Build -----------------------------------------------------------------------
 #
-# To build pytoulbar2-docker image :
+# To build toulbar2-docker image :
 #
-#   docker build -t pytoulbar2-docker:latest .
+#   docker build -t toulbar2-docker:latest .
 #
 # Work inside -----------------------------------------------------------------
 #
-# Then to work inside pytoulbar2-docker image, under /WORK 
+# Then to work inside toulbar2-docker image, under /WORK 
 # (as local folder to remaining results) :
 #
-#   docker run -v $PWD:/WORK -ti pytoulbar2-docker /bin/bash
+#   docker run -v $PWD:/WORK -ti toulbar2-docker /bin/bash
 #
 #   and once inside : source /WORK.sh
 #
 # Note :
 #
-# - To build pytoulbar2.simg from pytoulbar2-docker image :
-#   sudo singularity build -F pytoulbar2.simg docker-daemon://pytoulbar2-docker:latest
+# - To build toulbar2.simg from toulbar2-docker image :
+#   sudo singularity build -F toulbar2.simg docker-daemon://toulbar2-docker:latest
 #
 ###############################################################################
 
@@ -47,7 +47,7 @@ RUN apt-get update -yq \
 && pip3 install pybind11 \
 && apt-get clean -y
 
-#!!! enlever le git clone
+# 'git clone' remains ?
 RUN git clone https://github.com/toulbar2/toulbar2.git
 RUN cd toulbar2 \
 && mkdir build \
