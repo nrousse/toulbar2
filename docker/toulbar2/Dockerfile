@@ -4,6 +4,10 @@
 # 
 #           including toulbar2 and its pytoulbar2 Python API
 # 
+# Desc ------------------------------------------------------------------------
+# 
+# Installation from sources with cmake option -DPYTB2=ON
+# 
 # Build -----------------------------------------------------------------------
 #
 # To build toulbar2-docker image :

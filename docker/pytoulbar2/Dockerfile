@@ -7,6 +7,7 @@
 # Desc ------------------------------------------------------------------------
 # 
 # Installation with python3 -m pip install pytoulbar2
+#              pip3 install --cache-dir ... -t ... --upgrade pytoulbar2
 # 
 # Build -----------------------------------------------------------------------
 #
@@ -38,7 +39,19 @@ RUN apt-get update -yq \
 && apt-get install python3-pip -y \
 && apt-get clean -y
 
-RUN python3 -m pip install pytoulbar2
+RUN mkdir /WORK \
+&& export PYTHONPATH=$PYTHONPATH:/WORK:/WORK/pythonplus \
+&& mkdir /WORK/pythonplus \
+&& mkdir /WORK/cache \
+&& cd /WORK
+
+#RUN python3 -m pip install pytoulbar2
+#RUN pip3 install --cache-dir /WORK/cache -t /WORK/pythonplus --upgrade pytoulbar2
+RUN python3 -m pip install --cache-dir /WORK/cache -t /WORK/pythonplus --upgrade pytoulbar2
+
+RUN rm -fr /WORK/pythonplus \
+&& rm -fr /WORK/cache
+
 
 ###############################################################################
 
