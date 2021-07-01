@@ -65,45 +65,58 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
-  build-and-push-image-pytoulbar2:
-
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-
-    steps:
-
-      - name: Checkout repository
-        uses: actions/checkout@v2
-
-      # Login against a Docker registry except on PR
-      # https://github.com/docker/login-action
-      - name: Log into registry ${{ env.REGISTRY }}
-        if: github.event_name != 'pull_request'
-        uses: docker/login-action@v1
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      # Extract metadata (tags, labels) for Docker
-      # https://github.com/docker/metadata-action
-      - name: Extract Docker metadata
-        id: meta
-        uses: docker/metadata-action@v3
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_ROOT }}/pytoulbar2
-
-
-      # Build and push Docker image with Buildx (don't push on PR)
-      # https://github.com/docker/build-push-action
-      - name: Build and push Docker image pytoulbar2
-        uses: docker/build-push-action@v2
-        with:
-          context: .
-          file: ./docker/pytoulbar2/Dockerfile__pytoulbar2
-          push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+# build-and-push-image-pytoulbar2:
+# # ---------------------------------------------------------------------------
+# # NOK
+# # Build error met :
+# #   RUN python3 -m pip install pytoulbar2:
+# #   error: failed to solve: rpc error: code = Unknown desc = executor failed
+# #   running [/bin/sh -c python3 -m pip install pytoulbar2]: exit code: 1
+# #
+# # // Error met with local command python3 -m pip install pytoulbar2 :
+# #   Collecting pytoulbar2
+# #   Could not find a version that satisfies the requirement pytoulbar2
+# #   (from versions: )
+# #   No matching distribution found for pytoulbar2
+# # ---------------------------------------------------------------------------
+#
+#   runs-on: ubuntu-latest
+#   permissions:
+#     contents: read
+#     packages: write
+#
+#   steps:
+#
+#     - name: Checkout repository
+#       uses: actions/checkout@v2
+#
+#     # Login against a Docker registry except on PR
+#     # https://github.com/docker/login-action
+#     - name: Log into registry ${{ env.REGISTRY }}
+#       if: github.event_name != 'pull_request'
+#       uses: docker/login-action@v1
+#       with:
+#         registry: ${{ env.REGISTRY }}
+#         username: ${{ github.actor }}
+#         password: ${{ secrets.GITHUB_TOKEN }}
+#
+#     # Extract metadata (tags, labels) for Docker
+#     # https://github.com/docker/metadata-action
+#     - name: Extract Docker metadata
+#       id: meta
+#       uses: docker/metadata-action@v3
+#       with:
+#         images: ${{ env.REGISTRY }}/${{ env.IMAGE_ROOT }}/pytoulbar2
+#
+#
+#     # Build and push Docker image with Buildx (don't push on PR)
+#     # https://github.com/docker/build-push-action
+#     - name: Build and push Docker image pytoulbar2
+#       uses: docker/build-push-action@v2
+#       with:
+#         context: .
+#         file: ./docker/pytoulbar2/Dockerfile__pytoulbar2
+#         push: ${{ github.event_name != 'pull_request' }}
+#         tags: ${{ steps.meta.outputs.tags }}
+#         labels: ${{ steps.meta.outputs.labels }}
 
