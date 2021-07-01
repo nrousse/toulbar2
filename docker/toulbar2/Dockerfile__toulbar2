@@ -1,6 +1,6 @@
 ###############################################################################
 # 
-#                       Dockerfile container 
+#                     Dockerfile__toulbar2 container 
 # 
 #           including toulbar2 and its pytoulbar2 Python API
 # 
@@ -12,7 +12,7 @@
 #
 # To build toulbar2-docker image :
 #
-#   docker build -t toulbar2-docker:latest .
+#   docker build -f Dockerfile__toulbar2 -t toulbar2-docker:latest .
 #
 # Work inside -----------------------------------------------------------------
 #
@@ -22,11 +22,6 @@
 #   docker run -v $PWD:/WORK -ti toulbar2-docker /bin/bash
 #
 #   and once inside : source /WORK.sh
-#
-# Note :
-#
-# - To build toulbar2.simg from toulbar2-docker image :
-#   sudo singularity build -F toulbar2.simg docker-daemon://toulbar2-docker:latest
 #
 ###############################################################################
 
