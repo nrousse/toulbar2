@@ -51,7 +51,7 @@ RUN git clone https://github.com/toulbar2/toulbar2.git
 RUN cd toulbar2 \
 && mkdir build \
 && cd build \
-&& cmake -DPYTB2=ON .. \
+&& cmake -DPYTB2=ON -DXML=ON .. \
 && make
 
 RUN cp /toulbar2/build/lib/Linux/pytb2.cpython-37m-x86_64-linux-gnu.so /toulbar2/pytoulbar2/pytb2.cpython-37m-x86_64-linux-gnu.so
