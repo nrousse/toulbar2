@@ -9,11 +9,11 @@ name: Docker
 # https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions
 
 on:
-  push:
-    branches: [ master ]
-  pull_request:
-    branches: [ master ]
-  #workflow_dispatch:
+  workflow_dispatch
+  #push:
+  #  branches: [ master ]
+  #pull_request:
+  #  branches: [ master ]
 
 env:
   # Use docker.io for Docker Hub if empty
