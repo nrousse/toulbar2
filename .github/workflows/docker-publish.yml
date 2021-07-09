@@ -126,7 +126,7 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           context: .
-          file: ./docker/toulbar2/Dockerfile__pytoulbar2
+          file: ./docker/pytoulbar2/Dockerfile__pytoulbar2
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
