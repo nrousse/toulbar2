@@ -1,6 +1,6 @@
 ###############################################################################
 # 
-#                   Dockerfile__pytoulbar2 container 
+#                   Dockerfile_pytoulbar2 container 
 # 
 #           dedicated to pytoulbar2 Python API of toulbar2
 # 
@@ -12,7 +12,7 @@
 #
 # To build pytoulbar2-docker image :
 #
-#   docker build -f Dockerfile__pytoulbar2 -t pytoulbar2-docker:latest .
+#   docker build -f Dockerfile_pytoulbar2 -t pytoulbar2-docker:latest .
 #
 # Work inside -----------------------------------------------------------------
 #
