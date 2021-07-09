@@ -89,27 +89,6 @@ jobs:
 
 
 
-
-
-
-
-
-
-on:
-  push:
-    branches: [ master ]
-  pull_request:
-    branches: [ master ]
-  #workflow_dispatch:
-
-env:
-  # Use docker.io for Docker Hub if empty
-  REGISTRY: ghcr.io
-  # github.repository as <account>/<repo>
-  IMAGE_ROOT: ${{ github.repository }}
-
-jobs:
-
   build-and-push-image-pytoulbar2:
 
     runs-on: ubuntu-latest
