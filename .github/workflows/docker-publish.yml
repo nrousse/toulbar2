@@ -62,8 +62,10 @@ jobs:
           context: .
           file: ./docker/toulbar2/Dockerfile_toulbar2
           push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          #tags: ${{ steps.meta.outputs.tags }}
+          tags: my-org/my-image:latest
+          #labels: ${{ steps.meta.outputs.labels }}
+          labels: blablabla
 
   build-and-push-image-pytoulbar2:
 
