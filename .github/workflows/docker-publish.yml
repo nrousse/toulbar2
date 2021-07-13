@@ -55,9 +55,6 @@ jobs:
         uses: docker/metadata-action@v3
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_ROOT }}/toulbar2
-          labels: \
-            org.opencontainers.image.title="toulbar2 and its pytoulbar2 Python API" \
-            org.opencontainers.image.description="Docker image containing toulbar2 and pytoulbar2 installed with ........"
 
       # Build and push Docker image with Buildx (don't push on PR)
       # https://github.com/docker/build-push-action
@@ -68,8 +65,10 @@ jobs:
           file: ./docker/toulbar2/Dockerfile_toulbar2
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-
+          labels: |
+            ${{ steps.meta.outputs.labels }}
+            org.opencontainers.image.title="toulbar2 and its pytoulbar2 Python API"
+            org.opencontainers.image.description="Docker image containing toulbar2 and pytoulbar2 installed with ........"
 
 
   build-and-push-image-pytoulbar2:
