@@ -55,8 +55,8 @@ jobs:
         uses: docker/metadata-action@v3
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_ROOT }}/toulbar2
-          labels: |
-            org.opencontainers.image.title="toulbar2 and its pytoulbar2 Python API"
+          labels: \
+            org.opencontainers.image.title="toulbar2 and its pytoulbar2 Python API" \
             org.opencontainers.image.description="Docker image containing toulbar2 and pytoulbar2 installed with ........"
 
       # Build and push Docker image with Buildx (don't push on PR)
