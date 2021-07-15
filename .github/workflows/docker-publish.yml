@@ -69,6 +69,9 @@ jobs:
             ${{ steps.meta.outputs.labels }}
             org.opencontainers.image.description=Docker image containing toulbar2 and its pytoulbar2 Python API, installed from sources with cmake options -DPYTB2=ON and -DXML=ON
 
+      - name: Image digest
+        run: echo ${{ steps.docker_build.outputs.digest }}
+
   build-and-push-image-pytoulbar2:
 
     runs-on: ubuntu-latest
