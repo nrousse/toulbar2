@@ -69,6 +69,26 @@ jobs:
             ${{ steps.meta.outputs.labels }}
             org.opencontainers.image.description=Docker image containing toulbar2 and its pytoulbar2 Python API, installed from sources with cmake options -DPYTB2=ON and -DXML=ON
 
+
+
+  monessai:
+
+    runs-on: ${{ env.REGISTRY }}/${{ env.IMAGE_ROOT }}/toulbar2
+    permissions:
+      contents: read
+
+    steps:
+
+      - name: SHA
+        run: |
+          cat /COMMIT_HASH_toulbar2
+          cat /COMMIT_HASH_toulbar2 > CCCCCCCC
+
+
+
+
+
+
   build-and-push-image-pytoulbar2:
 
     runs-on: ubuntu-latest
