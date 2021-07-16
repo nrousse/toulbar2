@@ -71,8 +71,8 @@ jobs:
 
       - name: SHA
         run: |
-          docker run -ti ghcr.io/nrousse/toulbar2/toulbar2:master cat /COMMIT_HASH_toulbar2
-          docker run -ti ghcr.io/nrousse/toulbar2/toulbar2:master cat /COMMIT_HASH_toulbar2 > CCCCCCCC
+          docker run ghcr.io/nrousse/toulbar2/toulbar2:master cat /COMMIT_HASH_toulbar2
+          docker run ghcr.io/nrousse/toulbar2/toulbar2:master cat /COMMIT_HASH_toulbar2 > CCCCCCCC
 
 
 
