@@ -32,7 +32,12 @@
  
   - Command :
 
-    docker run -v $PWD:/WORK -ti ghcr.io/nrousse/toulbar2/toulbar2:master /bin/bash /WORK/call_pytoulbar2.sh
+    docker run -ti ghcr.io/nrousse/toulbar2/toulbar2:master /bin/bash /WORK/call_pytoulbar2.sh
  
 ###############################################################################
+
+
+  REMARQUE : (ghcr.io/nrousse/toulbar2/toulbar2:master) :
+
+  docker run -v $PWD:/WORK -ti ghcr.io/toulbar2/toulbar2/toulbar2:master /bin/bash /WORK/commit_sha_toulbar2.sh
 
