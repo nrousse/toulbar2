@@ -49,6 +49,8 @@ RUN apt-get update -yq \
 RUN git clone https://github.com/toulbar2/toulbar2.git
 
 RUN cd toulbar2 \
+&& HASHFILE=/COMMIT_HASH_toulbar2 \
+&& git log --pretty=format:'%H' -n 1 > $HASHFILE \
 && mkdir build \
 && cd build \
 && cmake -DPYTB2=ON -DXML=ON .. \
@@ -65,7 +67,6 @@ RUN CMDFILE=/WORK.sh \
 && echo "PATH=\$PATH:/toulbar2/build/bin/Linux:/toulbar2/src:/WORK" >> $CMDFILE \
 && echo "ln -s /toulbar2/pytoulbar2 /WORK/pytoulbar2"           >> $CMDFILE \
 && echo "cd /WORK"                                              >> $CMDFILE
-
 
 ###############################################################################
 
