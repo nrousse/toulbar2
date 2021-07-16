@@ -18,6 +18,12 @@
 
     docker run -v $PWD:/WORK -ti ghcr.io/nrousse/toulbar2/toulbar2:master /bin/bash /WORK/call_toulbar2.sh
  
+# Call toulbar2 to know commit sha of toulbar2 --------------------------------
+
+  - Command :
+
+    docker run -ti ghcr.io/nrousse/toulbar2/toulbar2:master cat /COMMIT_HASH_toulbar2
+
 # Call pytoulbar2 -------------------------------------------------------------
  
   - problem.py : python code using pytoulbar2
