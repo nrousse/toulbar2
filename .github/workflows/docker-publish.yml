@@ -35,54 +35,44 @@ jobs:
 
     steps:
 
-      - name: Checkout repository
-        uses: actions/checkout@v2
+#     - name: Checkout repository
+#       uses: actions/checkout@v2
 
       # Login against a Docker registry except on PR
       # https://github.com/docker/login-action
-      - name: Log into registry ${{ env.REGISTRY }}
-        if: github.event_name != 'pull_request'
-        uses: docker/login-action@v1
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+#     - name: Log into registry ${{ env.REGISTRY }}
+#       if: github.event_name != 'pull_request'
+#       uses: docker/login-action@v1
+#       with:
+#         registry: ${{ env.REGISTRY }}
+#         username: ${{ github.actor }}
+#         password: ${{ secrets.GITHUB_TOKEN }}
 
       # Extract metadata (tags, labels) for Docker
       # https://github.com/docker/metadata-action
-      - name: Extract Docker metadata
-        id: meta
-        uses: docker/metadata-action@v3
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_ROOT }}/toulbar2
+#     - name: Extract Docker metadata
+#       id: meta
+#       uses: docker/metadata-action@v3
+#       with:
+#         images: ${{ env.REGISTRY }}/${{ env.IMAGE_ROOT }}/toulbar2
 
       # Build and push Docker image with Buildx (don't push on PR)
       # https://github.com/docker/build-push-action
-      - name: Build and push Docker image toulbar2
-        uses: docker/build-push-action@v2
-        with:
-          context: .
-          file: ./docker/toulbar2/Dockerfile_toulbar2
-          push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: |
-            ${{ steps.meta.outputs.labels }}
-            org.opencontainers.image.description=Docker image containing toulbar2 and its pytoulbar2 Python API, installed from sources with cmake options -DPYTB2=ON and -DXML=ON
-
-
-
-  monessai:
-
-    runs-on: ghcr.io/nrousse/toulbar2/toulbar2
-    permissions:
-      contents: read
-
-    steps:
+#     - name: Build and push Docker image toulbar2
+#       uses: docker/build-push-action@v2
+#       with:
+#         context: .
+#         file: ./docker/toulbar2/Dockerfile_toulbar2
+#         push: ${{ github.event_name != 'pull_request' }}
+#         tags: ${{ steps.meta.outputs.tags }}
+#         labels: |
+#           ${{ steps.meta.outputs.labels }}
+#           org.opencontainers.image.description=Docker image containing toulbar2 and its pytoulbar2 Python API, installed from sources with cmake options -DPYTB2=ON and -DXML=ON
 
       - name: SHA
         run: |
-          cat /COMMIT_HASH_toulbar2
-          cat /COMMIT_HASH_toulbar2 > CCCCCCCC
+          docker run -ti ghcr.io/nrousse/toulbar2/toulbar2:master cat /COMMIT_HASH_toulbar2
+          docker run -ti ghcr.io/nrousse/toulbar2/toulbar2:master cat /COMMIT_HASH_toulbar2 > CCCCCCCC
 
 
 
