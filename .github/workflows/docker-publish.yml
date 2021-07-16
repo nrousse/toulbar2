@@ -73,7 +73,7 @@ jobs:
 
   monessai:
 
-    runs-on: ${{ env.REGISTRY }}/${{ env.IMAGE_ROOT }}/toulbar2
+    runs-on: ghcr.io/nrousse/toulbar2/toulbar2
     permissions:
       contents: read
 
