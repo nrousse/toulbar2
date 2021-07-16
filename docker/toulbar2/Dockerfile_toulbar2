@@ -56,10 +56,7 @@ RUN cd toulbar2 \
 && cmake -DPYTB2=ON -DXML=ON .. \
 && make
 
-RUN mv /toulbar2/build/lib/Linux/pytb2.cpython-37m-x86_64-linux-gnu.so /toulbar2/pytoulbar2/pytb2.cpython-37m-x86_64-linux-gnu.so \
-&& mkdir /toulbar2/bin \
-&& mv /toulbar2/build/bin/Linux /toulbar2/bin/Linux \
-&& rm -fr /toulbar2/build
+RUN cp /toulbar2/build/lib/Linux/pytb2.cpython-37m-x86_64-linux-gnu.so /toulbar2/pytoulbar2/pytb2.cpython-37m-x86_64-linux-gnu.so
 
 RUN CMDFILE=/WORK.sh \
 && echo "#!/bin/bash" > $CMDFILE \
@@ -67,7 +64,7 @@ RUN CMDFILE=/WORK.sh \
 && echo "#####################################################" >> $CMDFILE \
 && echo "# Init to work into /WORK folder with (py)toulbar2   " >> $CMDFILE \
 && echo "#####################################################" >> $CMDFILE \
-&& echo "PATH=\$PATH:/toulbar2/bin/Linux:/toulbar2/src:/WORK"   >> $CMDFILE \
+&& echo "PATH=\$PATH:/toulbar2/build/bin/Linux:/toulbar2/src:/WORK" >> $CMDFILE \
 && echo "ln -s /toulbar2/pytoulbar2 /WORK/pytoulbar2"           >> $CMDFILE \
 && echo "cd /WORK"                                              >> $CMDFILE
 
