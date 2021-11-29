@@ -1,7 +1,6 @@
 .. name2 documentation master file, created by
    sphinx-quickstart on Mon Nov 29 09:06:46 2021.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+   Should at least contain the root `toctree` directive.
 
 ===================
 name2, an exact ...
@@ -9,20 +8,18 @@ name2, an exact ...
 
 ... Brief description ...
 
-    :ref:`presentation` |
-    :ref:`authors` | :ref:`citations` | :ref:`acknowledgements`
-    :ref:`license`
-
 .. toctree::
    :maxdepth: 1
    :caption: Table of content:
 
+   presentation.rst
    downloads.rst
    documentation.rst
    publications.rst
    tutorials.rst
-   tutorial
-   api
+   pyname2.rst
+
+
 
 ..
   .. toctree::

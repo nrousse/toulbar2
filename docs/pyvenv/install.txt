@@ -1,0 +1,25 @@
+==================================================
+Build Sphinx doc into a virtual python environment
+==================================================
+
+Some required basic tools to be installed if not already installed
+==================================================================
+
+- python 3                         : apt-get install python3
+- pip3                             : apt-get install python3-pip
+- python3 virtual environment tool : apt-get install python3-venv
+
+pyvenv virtual environment
+=================================
+
+- pyvenv venv creation :
+python3 -m venv pyvenv
+
+- pyvenv venv activation :
+source pyvenv/bin/activate
+
+( just to control the activation of pyvenv venv : which python )
+
+- installation (into pyvenv) from requirement.txt :
+pip3 install -r requirement.txt
+

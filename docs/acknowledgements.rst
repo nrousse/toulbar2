@@ -1,8 +1,0 @@
-.. _acknowledgements:
-
-================
-Acknowledgements
-================
-
-...
-
