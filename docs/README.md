@@ -68,6 +68,8 @@ CI/CD result :
 
   => Doc online at : **https://nrousse.github.io/toulbar2**
 
+  => doc.pdf : ?
+
 LOCAL generate
 ==============
 
