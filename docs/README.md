@@ -41,5 +41,9 @@ CI/CD
 docs_pages_workflow.yml
 docs/buildDocs.sh
 
+On the repo : "Settings" / "Pages" choose 'gh-pages branch' under "Source"
+
+#------------------------------------------------------------------------------
+Doc online at : https://nrousse.github.io/toulbar2/
 #------------------------------------------------------------------------------
 
