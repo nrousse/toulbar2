@@ -47,8 +47,6 @@ INIT/CREATE Sphinx doc
 
   python code path
 
-- autodoc.rst (a enlever ?)
-
 CI/CD
 =====
 
@@ -73,11 +71,11 @@ CI/CD result :
 LOCAL generate
 ==============
 
-See docs/pyvenv/install.txt to init pyvenv python virtual environment
+See docs/local/install.txt to install pyvenv python virtual environment
 
 Commands :
 
-  source pyvenv/pyvenv/bin/activate
+  source _pyvenv/bin/activate
 
   make clean
 
@@ -89,7 +87,7 @@ Productions :
 
   _build/html/index.html
 
-  _build/rinoh/name2.pdf
+  _build/rinoh/toulbar2.pdf
 
 #------------------------------------------------------------------------------
 

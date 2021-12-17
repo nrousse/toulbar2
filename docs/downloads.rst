@@ -1,7 +1,7 @@
-.. downloads
+.. _downloads:
 
 =========
-downloads
+Downloads
 =========
 
 **Latest release toulbar2 binaries**

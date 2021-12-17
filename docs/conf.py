@@ -11,17 +11,22 @@
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-#
-# import os
-# import sys
-# sys.path.insert(0, os.path.abspath('.'))
 
+import os
+import sys
+# sys.path.insert(0, os.path.abspath('.'))
+docs_path = os.path.normpath(os.path.abspath('.'))
+
+# python source code path
+pytoulbar2_code_path = os.path.normpath(
+                                 os.path.join(docs_path, "..", "pytoulbar2"))
+sys.path.insert(0, pytoulbar2_code_path)
 
 # -- Project information -----------------------------------------------------
 
-project = 'name2'
-copyright = '2021, inrae'
-author = 'inrae'
+project = 'toulbar2'
+copyright = '2021, INRAE'
+author = 'INRAE'
 
 # The short X.Y version
 version = ''
@@ -42,11 +47,12 @@ extensions = [
     'sphinx_rtd_theme',
     'sphinx.ext.autodoc',
     'sphinx.ext.viewcode',
+    'sphinx.ext.mathjax',
     'sphinx.ext.githubpages',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
-templates_path = ['_templates']
+templates_path = [os.path.join(docs_path,'_templates')]
 
 # The suffix(es) of source filenames.
 # You can specify multiple suffix as a list of string:
@@ -67,11 +73,11 @@ language = None
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
+exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store',
+                    'local', '_pyvenv', ]
 
 # The name of the Pygments (syntax highlighting) style to use.
-pygments_style = None
-
+pygments_style = 'sphinx'
 
 # -- Options for HTML output -------------------------------------------------
 
@@ -83,13 +89,28 @@ html_theme = 'sphinx_rtd_theme'
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
-#
-# html_theme_options = {}
+
+html_theme_options = {
+    #'logo_only': False,
+    #'display_version': True,
+    #'prev_next_buttons_location': 'bottom',
+    #'style_external_links': False,
+    #'vcs_pageview_mode': '',
+    #'style_nav_header_background': 'FireBrick',
+    # Toc options
+    #'collapse_navigation': True,
+    #'sticky_navigation': True,
+    'navigation_depth': 4,
+    #'includehidden': True,
+    #'titles_only': False
+}
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
+html_static_path = [os.path.join(docs_path,'_static')]
+
+html_style = 'css/toulbar2.css'
 
 # Custom sidebar templates, must be a dictionary that maps document names
 # to template names.
@@ -101,12 +122,12 @@ html_static_path = ['_static']
 #
 # html_sidebars = {}
 
-html_logo = "_static/softac.gif"
+#html_logo = 
 
 # -- Options for HTMLHelp output ---------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'name2doc'
+htmlhelp_basename = 'toulbar2doc'
 
 
 # -- Options for LaTeX output ------------------------------------------------
@@ -133,8 +154,8 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'name2.tex', 'name2 Documentation',
-     'inrae', 'manual'),
+    (master_doc, 'toulbar2.tex', 'toulbar2 Documentation',
+     'INRAE', 'manual'),
 ]
 
 
@@ -143,7 +164,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'name2', 'name2 Documentation',
+    (master_doc, 'toulbar2', 'toulbar2 Documentation',
      [author], 1)
 ]
 
@@ -154,8 +175,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'name2', 'name2 Documentation',
-     author, 'name2', 'One line description of project.',
+    (master_doc, 'toulbar2', 'toulbar2 Documentation',
+     author, 'toulbar2', 'One line description of project.',
      'Miscellaneous'),
 ]
 
@@ -178,10 +199,5 @@ epub_title = project
 epub_exclude_files = ['search.html']
 
 
-# -- Extension configuration -------------------------------------------------
-
-# add sourcecode to path
-import sys, os
-sys.path.insert(0, os.path.abspath('../pytoulbar2'))
-
+# ----------------------------------------------------------------------------
 
