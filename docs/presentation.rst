@@ -36,19 +36,19 @@ Citations
 =========
 
 
-- Multi-Language Evaluation of Exact Solvers in Graphical Model Discrete Optimization
+- `Multi-Language Evaluation of Exact Solvers in Graphical Model Discrete Optimization <https://miat.inrae.fr/degivry/Hurley16b.pdf>`_
 
   Barry Hurley, Barry O'Sullivan, David Allouche, George Katsirelos, Thomas Schiex, Matthias Zytnicki, Simon de Givry
 
   Constraints, 21(3):413-434, 2016
 
-- Tractability-preserving Transformations of Global Cost Functions
+- `Tractability-preserving Transformations of Global Cost Functions <https://miat.inrae.fr/degivry/Schiex16a.pdf>`_
 
   David Allouche, Christian Bessiere, Patrice Boizumault, Simon de Givry, Patricia Gutierrez, Jimmy HM. Lee, Ka Lun Leung, Samir Loudni, Jean-Philippe Métivier, Thomas Schiex, Yi Wu
 
   Artificial Intelligence, 238:166-189, 2016
 
-- Soft arc consistency revisited
+- `Soft arc consistency revisited <https://miat.inrae.fr/degivry/Cooper10a.pdf>`_
 
   Martin Cooper, Simon de Givry, Marti Sanchez, Thomas Schiex, Matthias Zytnicki, and Thomas Werner
 
@@ -59,7 +59,7 @@ Citations
 Acknowledgements
 ================
 
-**toulbar2** has been partly funded by the French *Agence Nationale de la Recherche* (projects STAL-DEC-OPT from 2006 to 2008, ANR-10-BLA-0214 `Ficolofo <http://costfunction.org>`_ from 2011 to 2014, and ANR-16-CE40-0028 `DemoGraph <http://www.lsis.org/demograph>`_ from 2017 to 2021) and a PHC PROCORE project number 28680VH (from 2013 to 2015).
+**toulbar2** has been partly funded by the French *Agence Nationale de la Recherche* (projects STAL-DEC-OPT from 2006 to 2008, ANR-10-BLA-0214 `Ficolofo <http://costfunction.org>`_ from 2011 to 2014, and ANR-16-CE40-0028 `DemoGraph <http://www.lsis.org/demograph>`_ from 2017 to 2021) and a PHC PROCORE project number 28680VH (from 2013 to 2015). It is currently supported by ANITI ANR-19-P3IA-0004 (2019-).
 
 License
 =======
