@@ -12,6 +12,13 @@ set -x
 # INSTALL DEPENDS #
 ###################
  
+
+
+TZ=Europe/Paris
+ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
+
+
 apt-get update -yq
 apt-get -yq install git rsync python3-sphinx python3-sphinx-rtd-theme python3-stemmer python3-git python3-pip python3-virtualenv python3-setuptools
  
