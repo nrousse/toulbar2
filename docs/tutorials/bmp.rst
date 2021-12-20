@@ -30,7 +30,17 @@ More examples with 3 clusters (Stochastic Block Models `[Funke and Becker, Plos 
 .. image:: ../../web/IMAGES/SBM.png
    :height: 250px
 
-See other examples (\*.mat) such as `PoliticalActor <https://www.ifip.com/Partitioning_Political_Actor.html>`_ in **<a href="TUTORIALS">TUTORIALS</a>**.
+See other examples, such as `PoliticalActor <https://www.ifip.com/Partitioning_Political_Actor.html>`_, here :
+:download:`100.mat <../../web/TUTORIALS/100.mat>` |
+:download:`150.mat <../../web/TUTORIALS/150.mat>` |
+:download:`200.mat <../../web/TUTORIALS/200.mat>` |
+:download:`30.mat <../../web/TUTORIALS/30.mat>` |
+:download:`50.mat <../../web/TUTORIALS/50.mat>` |
+:download:`hartford_drug.mat <../../web/TUTORIALS/hartford_drug.mat>` |
+:download:`kansas.mat <../../web/TUTORIALS/kansas.mat>` |
+:download:`politicalactor.mat <../../web/TUTORIALS/politicalactor.mat>` |
+:download:`sharpstone.mat <../../web/TUTORIALS/sharpstone.mat>` |
+:download:`transatlantic.mat <../../web/TUTORIALS/transatlantic.mat>`.
 
 Python model generator
 ======================
