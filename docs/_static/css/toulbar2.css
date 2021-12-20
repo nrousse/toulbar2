@@ -111,6 +111,9 @@ h1, h2, .rst-content .toctree-wrapper p.caption, h3, h4, h5, h6, legend {
     font-family: "Ubuntu Mono", monospace, sans-serif;
 }
 
+.rst-content section ul li { list-style-type:disc; }
+.rst-content section ol li { list-style-type:disc; }
+
 .wy-menu-vertical li.toctree-l1.current>a {
     /*text color of toctree*/
     color: #414042; /* texte du sous-menu principal */
