@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - 'sphinxlab_nr'
+      - 'master'
 
 jobs:
  

@@ -36,7 +36,8 @@ export REPO_NAME="${GITHUB_REPOSITORY##*/}"
 make -C docs clean
  
 # get a list of branches, excluding 'HEAD' and 'gh-pages'
-versions="`git for-each-ref '--format=%(refname:lstrip=-1)' refs/remotes/origin/ | grep -viE '^(HEAD|gh-pages)$'`"
+# and 'avant_sphinx_lab'
+versions="`git for-each-ref '--format=%(refname:lstrip=-1)' refs/remotes/origin/ | grep -viE '^(HEAD|gh-pages|avant_sphinx_lab)$'`"
 for current_version in ${versions}; do
  
    # make the current language available to conf.py
@@ -61,29 +62,27 @@ for current_version in ${versions}; do
       echo "INFO: Building for ${current_language}"
  
       # html
-      sphinx-build -b html docs/ docs/_build_nr/html/${current_language}/${current_version}/nr -D language="${current_language}"
+      sphinx-build -b html docs/ docs/_build/html/${current_language}/${current_version} -D language="${current_language}"
  
       # pdf
-      sphinx-build -b rinoh docs/ docs/_build_nr/rinoh -D language="${current_language}"
+      sphinx-build -b rinoh docs/ docs/_build/rinoh -D language="${current_language}"
       mkdir -p "${docroot}/${current_language}/${current_version}"
-      mkdir -p "${docroot}/${current_language}/${current_version}/nr"
-      cp "docs/_build_nr/rinoh/toulbar2.pdf" "${docroot}/${current_language}/${current_version}/nr/toulbar2_${current_language}_${current_version}.pdf"
+      cp "docs/_build/rinoh/toulbar2.pdf" "${docroot}/${current_language}/${current_version}/toulbar2_${current_language}_${current_version}.pdf"
 
       # epub
-      sphinx-build -b epub docs/ docs/_build_nr/epub -D language="${current_language}"
+      sphinx-build -b epub docs/ docs/_build/epub -D language="${current_language}"
       mkdir -p "${docroot}/${current_language}/${current_version}"
-      mkdir -p "${docroot}/${current_language}/${current_version}/nr"
-      cp "docs/_build_nr/epub/toulbar2.epub" "${docroot}/${current_language}/${current_version}/nr/toulbar2_${current_language}_${current_version}.epub"
+      cp "docs/_build/epub/toulbar2.epub" "${docroot}/${current_language}/${current_version}/toulbar2_${current_language}_${current_version}.epub"
  
       # copy into docroot the static assets produced by the above build
-      rsync -av "docs/_build_nr/html/" "${docroot}/"
+      rsync -av "docs/_build/html/" "${docroot}/"
  
    done
  
 done
  
-# return to sphinxlab_nr branch
-git checkout sphinxlab_nr
+# return to master branch
+git checkout master
  
 ###############################################################################
 # Update GitHub Pages
@@ -108,10 +107,10 @@ cat > index.html <<EOF
 <html>
    <head>
       <title>toulbar2 Docs (from ... buildDocs.sh ...) </title>
-      <meta http-equiv = "refresh" content="0; url='/${REPO_NAME}/en/nr/'" />
+      <meta http-equiv = "refresh" content="0; url='/${REPO_NAME}/en/master/'" />
    </head>
    <body>
-      <p>Please wait while you're redirected to our <a href="/${REPO_NAME}/en/nr/">documentation</a>.</p>
+      <p>Please wait while you're redirected to our <a href="/${REPO_NAME}/en/master/">documentation</a>.</p>
    </body>
 </html>
 EOF
