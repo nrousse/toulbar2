@@ -1,6 +1,8 @@
 /*
  * **************** Generic solver *******************
  *
+ * Parallel HBFS version thanks to Abdelkader Beldjilali
+ *
  */
 
 #include "tb2solver.hpp"
@@ -17,6 +19,7 @@
 #include "vns/tb2rpdgvns.hpp"
 #endif
 #include <unistd.h>
+#include <thread>
 
 extern void setvalue(int wcspId, int varIndex, Value value, void* solver);
 
@@ -29,11 +32,6 @@ const string Solver::CPOperation[CP_MAX] = { "ASSIGN", "REMOVE", "INCREASE", "DE
 
 WeightedCSPSolver* WeightedCSPSolver::makeWeightedCSPSolver(Cost ub)
 {
-#ifdef OPENMPI
-    MPIEnv env0;
-    MPI_Comm_size(MPI_COMM_WORLD, &env0.ntasks);
-    MPI_Comm_rank(MPI_COMM_WORLD, &env0.myrank);
-#endif
     WeightedCSPSolver* solver = NULL;
     switch (ToulBar2::searchMethod) {
     case VNS:
@@ -42,24 +40,24 @@ WeightedCSPSolver* WeightedCSPSolver::makeWeightedCSPSolver(Cost ub)
         solver = new VNSSolver(ub);
 #else
         cerr << "Error: compiling with Boost graph library is needed to allow VNS-like search methods." << endl;
-        exit(EXIT_FAILURE);
+        throw BadConfiguration();
 #endif
         break;
 #ifdef OPENMPI
     case CPDGVNS:
 #ifdef BOOST
-        solver = new CooperativeParallelDGVNS(ub, env0);
+        solver = new CooperativeParallelDGVNS(ub);
 #else
         cerr << "Error: compiling with Boost graph library is needed to allow VNS-like search methods." << endl;
-        exit(EXIT_FAILURE);
+        throw BadConfiguration();
 #endif
         break;
     case RPDGVNS:
 #ifdef BOOST
-        solver = new ReplicatedParallelDGVNS(ub, env0);
+        solver = new ReplicatedParallelDGVNS(ub);
 #else
         cerr << "Error: compiling with Boost graph library is needed to allow VNS-like search methods." << endl;
-        exit(EXIT_FAILURE);
+        throw BadConfiguration();
 #endif
         break;
 #endif
@@ -68,7 +66,7 @@ WeightedCSPSolver* WeightedCSPSolver::makeWeightedCSPSolver(Cost ub)
         solver = new TreeDecRefinement(ub);
 #else
         cerr << "Error: compiling with Boost graph library is needed to allow VNS-like search methods." << endl;
-        exit(EXIT_FAILURE);
+        throw BadConfiguration();
 #endif
         break;
     default:
@@ -101,6 +99,12 @@ Solver::Solver(Cost initUpperBound)
     , globalUpperBound(MAX_COST)
     , initialDepth(0)
     , prevDivSolutionCost(MIN_COST)
+    , nbChoices(0)
+    , nbForcedChoices(0)
+    , nbForcedChoiceChange(0)
+    , nbChoiceChange(0)
+    , nbReadOnly(0)
+    , solveDepth(0)
 {
     searchSize = new StoreInt(0);
     wcsp = WeightedCSP::makeWeightedCSP(initUpperBound, (void*)this);
@@ -111,7 +115,7 @@ Solver::~Solver()
     delete cp;
     delete open;
     delete unassignedVars;
-    for (unsigned int i=0; i<allVars.size(); i++) {
+    for (unsigned int i = 0; i < allVars.size(); i++) {
         delete allVars[i];
     }
     delete wcsp;
@@ -143,9 +147,9 @@ void Solver::initVarHeuristic()
 void Solver::updateVarHeuristic()
 {
     sort(allVars.begin(), allVars.end(),
-            [this](const DLink<Value> *v1, const DLink<Value> *v2) -> bool {
-                  return (wcsp->getDACOrder(v1->content) < wcsp->getDACOrder(v2->content));
-               });
+        [this](const DLink<Value>* v1, const DLink<Value>* v2) -> bool {
+            return (wcsp->getDACOrder(v1->content) < wcsp->getDACOrder(v2->content));
+        });
 }
 
 Cost Solver::read_wcsp(const char* fileName)
@@ -192,7 +196,7 @@ void Solver::read_solution(const char* filename, bool updateValueHeuristic)
                 i = wcsp->getVarIndex(token.substr(0, operation));
                 if ((unsigned int)i >= wcsp->numberOfVariables()) {
                     cerr << "Solution file incorrect! " << i_copy << " " << token << " " << i << endl;
-                    exit(EXIT_FAILURE);
+                    throw WrongFileFormat();
                 }
                 operation++;
             } else {
@@ -202,7 +206,7 @@ void Solver::read_solution(const char* filename, bool updateValueHeuristic)
                 unsigned int idx = wcsp->toIndex(i, token.substr(operation, string::npos));
                 if (idx >= wcsp->getDomainInitSize(i)) {
                     cerr << "Solution file incorrect! " << i_copy << " " << token << " " << i << " " << idx << endl;
-                    exit(EXIT_FAILURE);
+                    throw WrongFileFormat();
                 }
                 value = wcsp->toValue(i, idx);
             } else {
@@ -314,7 +318,7 @@ void Solver::parse_solution(const char* certificate, bool updateValueHeuristic)
         }
         if (items != 3) {
             cerr << "Certificate " << certif2 << " incorrect! " << items << endl;
-            exit(EXIT_FAILURE);
+            throw WrongFileFormat();
         }
         certif2 = strstr(certif2, sep);
         if (certif2)
@@ -324,7 +328,7 @@ void Solver::parse_solution(const char* certificate, bool updateValueHeuristic)
             var = wcsp->getVarIndex(to_string(svar));
             if ((unsigned int)var >= wcsp->numberOfVariables()) {
                 cerr << "Certificate " << certif2 << " incorrect!" << endl;
-                exit(EXIT_FAILURE);
+                throw WrongFileFormat();
             }
         } else {
             var = atoi(svar);
@@ -334,7 +338,7 @@ void Solver::parse_solution(const char* certificate, bool updateValueHeuristic)
             unsigned int idx = wcsp->toIndex(var, to_string(svalue));
             if (idx >= wcsp->getDomainInitSize(var)) {
                 cerr << "Certificate " << certif2 << " incorrect!" << endl;
-                exit(EXIT_FAILURE);
+                throw WrongFileFormat();
             }
             value = wcsp->toValue(var, idx);
         } else {
@@ -375,7 +379,7 @@ void Solver::parse_solution(const char* certificate, bool updateValueHeuristic)
         }
         default: {
             cerr << "unknown choice point '" << operation << "' for partial assignment!!!" << endl;
-            exit(EXIT_FAILURE);
+            throw InternalError();
         }
         }
         //        if (wcsp->unassigned(var)) {
@@ -411,7 +415,7 @@ void Solver::dump_wcsp(const char* fileName, bool original, ProblemFormat format
         break;
     default:
         cerr << "Cannot save in this problem format! " << format << endl;
-        exit(EXIT_FAILURE);
+        throw WrongFileFormat();
     }
 }
 
@@ -426,7 +430,7 @@ set<int> Solver::getUnassignedVars() const
 }
 unsigned int Solver::numberOfUnassignedVariables() const
 {
-    return ((unassignedVars)?unassignedVars->getSize():-1);
+    return ((unassignedVars) ? unassignedVars->getSize() : -1);
 }
 
 /*
@@ -640,8 +644,8 @@ int Solver::getVarMinDomainDivMaxWeightedDegreeLastConflict()
             EnumeratedVariable* var = (EnumeratedVariable*)((WCSP*)wcsp)->getVar(*iter);
             if (!var->isFullEAC()
                 && ((varIndex < 0)
-                    || (heuristic < best - epsilon * best)
-                    || (heuristic < best + epsilon * best && wcsp->getMaxUnaryCost(*iter) > worstUnaryCost))) {
+                       || (heuristic < best - epsilon * best)
+                       || (heuristic < best + epsilon * best && wcsp->getMaxUnaryCost(*iter) > worstUnaryCost))) {
                 best = heuristic;
                 varIndex = *iter;
                 worstUnaryCost = wcsp->getMaxUnaryCost(*iter);
@@ -801,8 +805,12 @@ void Solver::increase(int varIndex, Value value, bool reverse)
             cout << " #" << nbNodes;
         }
         cout << "[" << Store::getDepth() << "," << wcsp->getLb() << "," << wcsp->getUb() << "," << wcsp->getDomainSizeSum();
-        if (wcsp->getTreeDec())
+        if (wcsp->getTreeDec()) {
             cout << ",C" << wcsp->getTreeDec()->getCurrentCluster()->getId();
+            if (ToulBar2::heuristicFreedom) {
+                cout << "," << wcsp->getTreeDec()->getCurrentCluster()->getFreedom();
+            }
+        }
         cout << "] Try " << wcsp->getName(varIndex) << " >= " << value << " (s:" << wcsp->getSupport(varIndex) << ")" << endl;
     }
     wcsp->increase(varIndex, value);
@@ -825,8 +833,12 @@ void Solver::decrease(int varIndex, Value value, bool reverse)
             cout << " #" << nbNodes;
         }
         cout << "[" << Store::getDepth() << "," << wcsp->getLb() << "," << wcsp->getUb() << "," << wcsp->getDomainSizeSum();
-        if (wcsp->getTreeDec())
+        if (wcsp->getTreeDec()) {
             cout << ",C" << wcsp->getTreeDec()->getCurrentCluster()->getId();
+            if (ToulBar2::heuristicFreedom) {
+                cout << "," << wcsp->getTreeDec()->getCurrentCluster()->getFreedom();
+            }
+        }
         cout << "] Try " << wcsp->getName(varIndex) << " <= " << value << " (s:" << wcsp->getSupport(varIndex) << ")" << endl;
     }
     wcsp->decrease(varIndex, value);
@@ -874,8 +886,12 @@ void Solver::assign(int varIndex, Value value, bool reverse)
             cout << " #" << nbNodes;
         }
         cout << "[" << Store::getDepth() << "," << wcsp->getLb() << "," << wcsp->getUb() << "," << wcsp->getDomainSizeSum();
-        if (wcsp->getTreeDec())
+        if (wcsp->getTreeDec()) {
             cout << ",C" << wcsp->getTreeDec()->getCurrentCluster()->getId();
+            if (ToulBar2::heuristicFreedom) {
+                cout << "," << wcsp->getTreeDec()->getCurrentCluster()->getFreedom();
+            }
+        }
         cout << "] Try " << wcsp->getName(varIndex) << " == " << value << endl;
     }
     wcsp->assign(varIndex, value);
@@ -898,8 +914,12 @@ void Solver::remove(int varIndex, Value value, bool reverse)
             cout << " #" << nbNodes;
         }
         cout << "[" << Store::getDepth() << "," << wcsp->getLb() << "," << wcsp->getUb() << "," << wcsp->getDomainSizeSum();
-        if (wcsp->getTreeDec())
+        if (wcsp->getTreeDec()) {
             cout << ",C" << wcsp->getTreeDec()->getCurrentCluster()->getId();
+            if (ToulBar2::heuristicFreedom) {
+                cout << "," << wcsp->getTreeDec()->getCurrentCluster()->getFreedom();
+            }
+        }
         cout << "] Try " << wcsp->getName(varIndex) << " != " << value << endl;
     }
     wcsp->remove(varIndex, value);
@@ -922,8 +942,12 @@ void Solver::remove(int varIndex, ValueCost* array, int first, int last, bool re
             cout << " #" << nbNodes;
         }
         cout << "[" << Store::getDepth() << "," << wcsp->getLb() << "," << wcsp->getUb() << "," << wcsp->getDomainSizeSum();
-        if (wcsp->getTreeDec())
+        if (wcsp->getTreeDec()) {
             cout << ",C" << wcsp->getTreeDec()->getCurrentCluster()->getId();
+            if (ToulBar2::heuristicFreedom) {
+                cout << "," << wcsp->getTreeDec()->getCurrentCluster()->getFreedom();
+            }
+        }
         cout << "] Try " << wcsp->getName(varIndex) << " !=";
         for (int i = first; i <= last; i++)
             cout << " " << array[i].value;
@@ -1040,7 +1064,7 @@ void Solver::binaryChoicePoint(int varIndex, Value value, Cost lb)
     if (nbBacktracks > nbBacktracksLimit)
         throw NbBacktracksOut();
 #ifdef OPENMPI
-    if (ToulBar2::vnsParallel && ((nbBacktracks % 128) == 0) && MPI_interrupted())
+    if (ToulBar2::parallel && ((nbBacktracks % 128) == 0) && MPI_interrupted())
         throw TimeOut();
 #endif
     if (dichotomic) {
@@ -1120,7 +1144,7 @@ void Solver::binaryChoicePointLDS(int varIndex, Value value, int discrepancy)
         if (nbBacktracks > nbBacktracksLimit)
             throw NbBacktracksOut();
 #ifdef OPENMPI
-        if (ToulBar2::vnsParallel && ((nbBacktracks % 128) == 0) && MPI_interrupted())
+        if (ToulBar2::parallel && ((nbBacktracks % 128) == 0) && MPI_interrupted())
             throw TimeOut();
 #endif
         if (dichotomic) {
@@ -1205,7 +1229,7 @@ void Solver::scheduleOrPostpone(int varIndex)
     if (nbBacktracks > nbBacktracksLimit)
         throw NbBacktracksOut();
 #ifdef OPENMPI
-    if (ToulBar2::vnsParallel && ((nbBacktracks % 128) == 0) && MPI_interrupted())
+    if (ToulBar2::parallel && ((nbBacktracks % 128) == 0) && MPI_interrupted())
         throw TimeOut();
 #endif
     if (reverse)
@@ -1242,7 +1266,7 @@ void Solver::narySortedChoicePoint(int varIndex, Cost lb)
     if (nbBacktracks > nbBacktracksLimit)
         throw NbBacktracksOut();
 #ifdef OPENMPI
-    if (ToulBar2::vnsParallel && ((nbBacktracks % 128) == 0) && MPI_interrupted())
+    if (ToulBar2::parallel && ((nbBacktracks % 128) == 0) && MPI_interrupted())
         throw TimeOut();
 #endif
 }
@@ -1276,7 +1300,7 @@ void Solver::narySortedChoicePointLDS(int varIndex, int discrepancy)
     if (nbBacktracks > nbBacktracksLimit)
         throw NbBacktracksOut();
 #ifdef OPENMPI
-    if (ToulBar2::vnsParallel && ((nbBacktracks % 128) == 0) && MPI_interrupted())
+    if (ToulBar2::parallel && ((nbBacktracks % 128) == 0) && MPI_interrupted())
         throw TimeOut();
 #endif
 }
@@ -1350,22 +1374,22 @@ void Solver::newSolution()
     if (ToulBar2::isZ) {
         ToulBar2::logZ = wcsp->LogSumExp(ToulBar2::logZ, (Cost)(wcsp->getLb() + wcsp->getNegativeLb()));
         if (ToulBar2::debug && (nbBacktracks % 10000LL) == 0 && ToulBar2::logepsilon > -numeric_limits<TLogProb>::infinity())
-            cout << (ToulBar2::logZ + ToulBar2::markov_log) << " , " << (wcsp->LogSumExp(ToulBar2::logZ, ToulBar2::logU) + ToulBar2::markov_log)  << " in " << cpuTime() - ToulBar2::startCpuTime << " seconds" << endl;
+            cout << (ToulBar2::logZ + ToulBar2::markov_log) << " , " << (wcsp->LogSumExp(ToulBar2::logZ, ToulBar2::logU) + ToulBar2::markov_log) << " in " << cpuTime() - ToulBar2::startCpuTime << " seconds" << endl;
     }
     if ((!ToulBar2::allSolutions && !ToulBar2::isZ) || ToulBar2::debug >= 2) {
         if (ToulBar2::verbose >= 0 || ToulBar2::showSolutions) {
             if (ToulBar2::haplotype)
                 cout << "***New solution: " << wcsp->getLb() << " log10like: " << ToulBar2::haplotype->Cost2LogProb(wcsp->getLb()) / Log(10.) << " logProb: " << ToulBar2::haplotype->Cost2LogProb(wcsp->getLb()) << " (" << nbBacktracks << " backtracks, " << nbNodes << " nodes, depth " << Store::getDepth() << ", " << cpuTime() - ToulBar2::startCpuTime << " seconds)" << endl;
             else if (!ToulBar2::bayesian)
-                cout << "New solution: " << std::fixed << std::setprecision(ToulBar2::decimalPoint) << wcsp->getDDualBound() << std::setprecision(DECIMAL_POINT) << " (" << nbBacktracks << " backtracks, " << nbNodes << " nodes, depth " << Store::getDepth()  << ", " << cpuTime() - ToulBar2::startCpuTime << " seconds)" << endl;
+                cout << "New solution: " << std::fixed << std::setprecision(ToulBar2::decimalPoint) << wcsp->getDDualBound() << std::setprecision(DECIMAL_POINT) << " (" << nbBacktracks << " backtracks, " << nbNodes << " nodes, depth " << Store::getDepth() << ", " << cpuTime() - ToulBar2::startCpuTime << " seconds)" << endl;
             else
-                cout << "New solution: " << wcsp->getLb() << " energy: " << -(wcsp->Cost2LogProb(wcsp->getLb() + wcsp->getNegativeLb()) + ToulBar2::markov_log) << " prob: " << std::scientific << wcsp->Cost2Prob(wcsp->getLb() + wcsp->getNegativeLb()) * Exp(ToulBar2::markov_log) << std::fixed << " (" << nbBacktracks << " backtracks, " << nbNodes << " nodes, depth " << Store::getDepth()  << ", " << cpuTime() - ToulBar2::startCpuTime << " seconds)" << endl;
+                cout << "New solution: " << wcsp->getLb() << " energy: " << -(wcsp->Cost2LogProb(wcsp->getLb() + wcsp->getNegativeLb()) + ToulBar2::markov_log) << " prob: " << std::scientific << wcsp->Cost2Prob(wcsp->getLb() + wcsp->getNegativeLb()) * Exp(ToulBar2::markov_log) << std::fixed << " (" << nbBacktracks << " backtracks, " << nbNodes << " nodes, depth " << Store::getDepth() << ", " << cpuTime() - ToulBar2::startCpuTime << " seconds)" << endl;
         }
     }
 
-    wcsp->restoreSolution();
+    wcsp->restoreSolution(); // update all variables to be in the current assignment (necessary when some variables are eliminated)
     if (!ToulBar2::isZ)
-        wcsp->setSolution(wcsp->getLb());
+        wcsp->setSolution(wcsp->getLb());  // take current assignment and put it in solution (stl c++ map)
 
     if (ToulBar2::showSolutions) {
 
@@ -1539,6 +1563,15 @@ pair<Cost, Cost> Solver::hybridSolve(Cluster* cluster, Cost clb, Cost cub)
     assert(wcsp->getUb() == cub);
     assert(wcsp->getLb() <= clb);
     if (ToulBar2::hbfs) {
+#ifdef OPENMPI
+        if (ToulBar2::parallel && (!cluster || cluster == wcsp->getTreeDec()->getRoot())) {
+            if (world.rank() == MASTER) {
+                return hybridSolveMaster(cluster, clb, cub);
+            } else {
+                return hybridSolveWorker(cluster, clb, cub);
+            }
+        }
+#endif
         CPStore* cp_ = NULL;
         OpenList* open_ = NULL;
         Cost delta = MIN_COST;
@@ -1648,6 +1681,11 @@ pair<Cost, Cost> Solver::hybridSolve(Cluster* cluster, Cost clb, Cost cub)
             Store::restore(storedepthBFS);
             ToulBar2::vac = storeVAC;
             cp_->store();
+            if (ToulBar2::eps && open_->size() >= static_cast<std::size_t>(ToulBar2::eps)) {
+                epsDumpSubProblems(*cp_, *open_);
+                ToulBar2::interrupted = true;
+                throw TimeOut();
+            }
             if (cp_->size() >= static_cast<std::size_t>(ToulBar2::hbfsCPLimit) || open_->size() >= static_cast<std::size_t>(ToulBar2::hbfsOpenNodeLimit)) {
                 ToulBar2::hbfs = 0;
                 ToulBar2::hbfsGlobalLimit = 0;
@@ -1688,24 +1726,434 @@ pair<Cost, Cost> Solver::hybridSolve(Cluster* cluster, Cost clb, Cost cub)
     return make_pair(clb, cub);
 }
 
+#ifdef OPENMPI
+pair<Cost, Cost> Solver::hybridSolveMaster(Cluster* cluster, Cost clb, Cost cub)
+{
+    if (ToulBar2::verbose >= 1) {
+        if (cluster) cout << "hybridSolveMaster C" << cluster->getId() << " " << clb << " " << cub << endl;
+        else cout << "hybridSolveMaster " << clb << " " << cub << endl;
+    }
+    assert(clb < cub);
+    assert(wcsp->getUb() == cub);
+    assert(wcsp->getLb() <= clb);
+    assert(ToulBar2::hbfs);
+    CPStore* cp_ = NULL;
+    OpenList* open_ = NULL;
+    if (cluster) {
+        // BFS with BTD on current cluster (can be root or not)
+        assert(cluster->cp);
+        cp_ = cluster->cp;
+        assert(cluster == wcsp->getTreeDec()->getRoot());
+        if (!cluster->open) {
+            cluster->open = new OpenList();
+            assert(idleQ.size() == (size_t) (world.size()-1));
+        }
+        cluster->setUb(cub); // global problem upper bound
+        assert(cluster->open);
+        open_ = cluster->open;
+#ifndef NDEBUG
+        OpenList* prevopen = cluster->open;
+        Cost tmplb = MIN_COST;
+        Cost tmpub = MAX_COST;
+        assert(cluster == wcsp->getTreeDec()->getRoot() || cluster->nogoodGet(tmplb, tmpub, &cluster->open));
+        assert(prevopen == cluster->open);
+        assert(cluster == wcsp->getTreeDec()->getRoot() || tmpub == cluster->getUb());
+        assert(cluster != wcsp->getTreeDec()->getRoot() || cub == cluster->getUb());
+#endif
+    } else {
+        // normal BFS without BTD, i.e., hybridSolve is not reentrant
+        if (cp != NULL)
+            delete cp;
+        cp = new CPStore();
+        cp_ = cp;
+        if (open != NULL)
+            delete open;
+        open = new OpenList();
+        open_ = open;
+        assert(idleQ.size() == (size_t) (world.size()-1));
+    }
+    cp_->store();
+    if (open_->size() == 0 || (cluster && (clb >= open_->getClosedNodesLb() || cub > open_->getUb()))) { // start a new list of open nodes if needed
+        if (open_->size() == 0 && (!cluster || cluster->getNbVars() > 0))
+            nbHybridNew++;
+        // reinitialize current open list and insert empty node
+        *open_ = OpenList(MAX(MIN_COST, cub), MAX(MIN_COST, cub));
+        addOpenNode(*cp_, *open_, clb);
+        // wait for messages from workers in order to reinitialize the idleQ //TODO: send a message to ask to stop current search but not die
+        while (idleQ.size() < (size_t) (world.size()-1)) {
+            Work work; // dummy work
+            mpi::status status = world.recv(mpi::any_source, mpi::any_tag, work); // blocking recv to wait for matching messages from any worker
+            activeWork.erase(status.source());
+            idleQ.push(status.source());
+        }
+    } else if (!cluster || cluster->getNbVars() > 0)
+        nbHybridContinue++;
+    if (!cluster || cluster->getNbVars() > 0)
+        nbHybrid++; // do not count empty root cluster
+    if (cluster)
+        cluster->hbfsGlobalLimit = ((ToulBar2::hbfsGlobalLimit > 0) ? (nbBacktracks + ToulBar2::hbfsGlobalLimit) : LONGLONG_MAX);
+    Cost initiallb = clb;
+    Cost initialub = cub;
+    open_->updateUb(cub);
+    clb = MAX(clb, open_->getLb());
+    if (ToulBar2::verbose >= 1 && cluster)
+        cout << "hybridSolve-2 C" << cluster->getId() << " " << clb << " " << cub << " " << open_->size() << " " << open_->top().getCost() << " " << open_->getClosedNodesLb() << " " << open_->getUb() << endl;
+    while (clb < cub && (!open_->finished() || !activeWork.empty()) && (!cluster || (clb == initiallb && cub == initialub && nbBacktracks <= cluster->hbfsGlobalLimit))) {
+        if (cluster) {
+            assert(wcsp->getTreeDec()->getCurrentCluster() == cluster);
+            wcsp->setUb(cub);
+            assert(cluster->isActive());
+            assert(cluster->getLbRec() == wcsp->getLb());
+        }
+        Cost initub = wcsp->getUb();
+        // loop to distribute jobs to workers
+        while (!open_->finished() && !idleQ.empty()) { // while there is work to do and workers to do it
+            int worker = idleQ.front(); // get the first worker in the queue
+            vector<Value> masterSol;
+            Cost masterUb = wcsp->getSolutionCost();
+            if (masterUb < MAX_COST && (bestsolWork.find(worker)==bestsolWork.end() || masterUb < bestsolWork[worker])) {
+                masterSol = wcsp->getSolution();// the master sends the best solution or nothing
+                bestsolWork[worker] = masterUb;
+            }
+            assert(masterUb >= MAX_COST || wcsp->getUb() == masterUb);
+            Work work(*cp_, *open_, clb, wcsp->getUb(), masterSol);
+            if (!ToulBar2::hbfs) {
+                work.hbfs = false;
+            }
+            activeWork[worker] = work.open[0];
+            idleQ.pop(); // pop it, hence the worker is considered active
+
+            if (ToulBar2::verbose >= 1)
+                cout << ">>> master send to worker " << worker << " a message " << work << endl;
+            world.isend(worker, WORKTAG, work); // non blocking send: the master send work to worker
+        }
+
+        Work work2; // object work2 will be populated with workers' best solution ub and other information from this worker after it has performed a DFS
+        mpi::status status2 = world.recv(mpi::any_source, mpi::any_tag, work2); // blocking recv to wait for matching messages from any worker
+
+        wcsp->updateUb(work2.ub);
+        open_->updateUb(work2.ub);
+        nbNodes += work2.nbNodes;
+        nbBacktracks += work2.nbBacktracks;
+        ((WCSP*)wcsp)->incNbDEE(work2.nbDEE);
+
+        if (!work2.open.empty()) { // the master updates its CPStore with the decisions associated with the nodes sent by the worker
+            for (ptrdiff_t i = 0; i < (ptrdiff_t)work2.cp.size(); i++) {
+                cp_->push_back(work2.cp[i]);
+            }
+            for (size_t i = 0; i < work2.open.size(); i++) { // push the nodes sent by the worker
+                OpenNode node = work2.open[i];
+                node.first += cp_->start;
+                node.last += cp_->start;
+                open_->push(node);
+            }
+            cp_->stop = cp_->start + work2.cp.size();
+            cp_->store();
+        }
+
+        if (cluster) {
+            assert(work2.lb <= work2.ub);
+            open_->updateClosedNodesLb(work2.lb);
+            open_->updateUb(work2.ub);
+            cub = MIN(cub, work2.ub);
+        } else {
+            cub = wcsp->getUb();
+        }
+
+        activeWork.erase(status2.source());
+        idleQ.push(status2.source());
+
+        Cost minLbWorkers = MAX_COST;
+        for (std::unordered_map<int, OpenNode>::const_iterator it = activeWork.begin(); it != activeWork.end(); ++it) { // compute the min of lb among those of active workers
+            if (it->second.getCost() < minLbWorkers)
+                minLbWorkers = it->second.getCost();
+        }
+
+        if (ToulBar2::eps && open_->size() >= static_cast<std::size_t>(ToulBar2::eps)) {
+            for (std::unordered_map<int, OpenNode>::const_iterator it = activeWork.begin(); it != activeWork.end(); ++it) { // push back unfinished work
+                open_->push(it->second);
+            }
+            epsDumpSubProblems(*cp_, *open_);
+            for (int i = 0; i < world.size(); i++) if (i != MASTER) {
+                world.isend(i, DIETAG, Work());
+            }
+            ToulBar2::interrupted = true;
+            throw TimeOut();
+        }
+
+        if (cp_->size() >= static_cast<std::size_t>(ToulBar2::hbfsCPLimit) || open_->size() >= static_cast<std::size_t>(ToulBar2::hbfsOpenNodeLimit)) {
+            ToulBar2::hbfs = 0;
+            ToulBar2::hbfsGlobalLimit = 0;
+            if (cluster) {
+                cluster->hbfsGlobalLimit = LONGLONG_MAX;
+                cluster->hbfsLimit = LONGLONG_MAX;
+            } else
+                hbfsLimit = LONGLONG_MAX;
+        }
+
+        clb = MAX(clb, MIN(minLbWorkers, open_->getLb()));
+
+        showGap(clb, cub);
+
+        if (work2.ub < initub && !work2.sol.empty()) { // if the master receives an improving solution from the worker
+
+            // transformation of vector to map necessary because wcsp->getSolution returns a vector
+            map<int, Value> workerSolMap;
+            for (int i = 0; i < int(work2.sol.size()); i++) { // convert vector to map
+                workerSolMap[i] = work2.sol[i];
+            }
+            wcsp->setSolution(work2.ub, &workerSolMap); // take current assignment and stock it in solution
+
+            assert(work2.ub == wcsp->getUb());
+            bestsolWork[status2.source()] = work2.ub; // the worker knows this solution already
+
+            if (ToulBar2::verbose >= 0 || ToulBar2::showSolutions) {
+                if (ToulBar2::haplotype)
+                    cout << "***New solution: " << work2.ub << " log10like: " << ToulBar2::haplotype->Cost2LogProb(work2.ub) / Log(10.) << " logProb: " << ToulBar2::haplotype->Cost2LogProb(work2.ub) << " (" << nbBacktracks << " backtracks, " << nbNodes << " nodes, depth " << Store::getDepth() << ", " << cpuTime() - ToulBar2::startCpuTime << " seconds)" << endl;
+                else if (!ToulBar2::bayesian)
+                    cout << "New solution: " << std::fixed << std::setprecision(ToulBar2::decimalPoint) << wcsp->getDPrimalBound() << std::setprecision(DECIMAL_POINT) << " (" << nbBacktracks << " backtracks, " << nbNodes << " nodes, depth " << Store::getDepth() << ", " << cpuTime() - ToulBar2::startCpuTime << " seconds)" << endl;
+                else
+                    cout << "New solution: " << std::setprecision(ToulBar2::decimalPoint) << wcsp->getDPrimalBound() << std::setprecision(DECIMAL_POINT) << " energy: " << -(wcsp->Cost2LogProb(work2.ub) + ToulBar2::markov_log) << " prob: " << std::scientific << wcsp->Cost2Prob(work2.ub) * Exp(ToulBar2::markov_log) << std::fixed << " (" << nbBacktracks << " backtracks, " << nbNodes << " nodes, depth " << Store::getDepth() << ", " << cpuTime() - ToulBar2::startCpuTime << " seconds)" << endl;
+            }
+
+            if (ToulBar2::showSolutions) {
+                wcsp->printSolution(cout);
+                cout << endl;
+            }
+            if (ToulBar2::writeSolution && ToulBar2::solutionFile != NULL) {
+                rewind(ToulBar2::solutionFile);
+                wcsp->printSolution(ToulBar2::solutionFile);
+                fprintf(ToulBar2::solutionFile, "\n");
+            }
+            if (ToulBar2::xmlflag) {
+                cout << "o " << work2.ub << endl; //" ";
+            }
+            if (ToulBar2::maxsateval) {
+                cout << "o " << work2.ub << endl;
+            }
+            if (ToulBar2::uaieval && !ToulBar2::isZ) {
+                ((WCSP*)wcsp)->solution_UAI(work2.ub);
+            }
+        }
+    }
+
+    assert(clb >= initiallb && cub <= initialub);
+    assert(clb <= cub);
+    if (clb == cub) {
+        for (int i = 0; i < world.size(); i++) if (i != MASTER) {
+            world.isend(i, DIETAG, Work());
+        }
+    }
+    return make_pair(clb, cub);
+}
+
+pair<Cost, Cost> Solver::hybridSolveWorker(Cluster* cluster, Cost clb, Cost cub)
+{
+    if (ToulBar2::verbose >= 1) {
+        if (cluster) cout << "hybridSolveWorker#" << world.rank() << " C" << cluster->getId() << " " << clb << " " << cub << endl;
+        else cout << "hybridSolveWorker#" << world.rank() << " " << clb << " " << cub << endl;
+    }
+    assert(clb < cub);
+    assert(wcsp->getUb() == cub);
+    assert(wcsp->getLb() <= clb);
+    assert(ToulBar2::hbfs);
+    CPStore* cp_ = NULL;
+    OpenList* open_ = NULL;
+
+    if (cluster) {
+        // BFS with BTD on current cluster (can be root or not)
+        assert(cluster->cp);
+        cp_ = cluster->cp;
+        assert(cluster == wcsp->getTreeDec()->getRoot());
+        if (!cluster->open)
+            cluster->open = new OpenList();
+        cluster->setUb(cub); // global problem upper bound
+        assert(cluster->open);
+        open_ = cluster->open;
+#ifndef NDEBUG
+        OpenList* prevopen = cluster->open;
+        Cost tmplb = MIN_COST;
+        Cost tmpub = MAX_COST;
+        assert(cluster == wcsp->getTreeDec()->getRoot() || cluster->nogoodGet(tmplb, tmpub, &cluster->open));
+        assert(prevopen == cluster->open);
+        assert(cluster == wcsp->getTreeDec()->getRoot() || tmpub == cluster->getUb());
+        assert(cluster != wcsp->getTreeDec()->getRoot() || cub == cluster->getUb());
+#endif
+    } else {
+        // normal BFS without BTD, i.e., hybridSolve is not reentrant
+        if (cp != NULL)
+            delete cp;
+        cp = new CPStore();
+        cp_ = cp;
+        if (open != NULL)
+            delete open;
+        open = new OpenList();
+        open_ = open;
+    }
+
+    nbHybrid++;
+
+    while (true) {
+        assert(open_->empty());
+        cp_->stop = 0; // to have stop=start=index=0
+        cp_->store();
+
+        Long initNbNodes = nbNodes;
+        Long initNbBacktracks = nbBacktracks;
+        Long initNbDEE = wcsp->getNbDEE();
+
+        Work work;
+        mpi::status status = world.recv(MASTER, mpi::any_tag, work); //blocking recv from the master
+
+        if (status.tag() == DIETAG) {
+            ToulBar2::limited = true;
+            throw TimeOut();
+        }
+
+        if (!work.sol.empty()) { // the master is supposed to always sends an optimal solution or nothing
+            map<int, Value> masterSolMap; // convert vector to map
+            for (int i = 0; i < int(work.sol.size()); i++) {
+                masterSolMap[i] = work.sol[i];
+            }
+            wcsp->setSolution(work.ub, &masterSolMap); // take current assignment and stock it in solution
+        }
+
+        cub = MIN(cub, work.ub);
+
+//        wcsp->updateUb(work.ub); // update global UB in worker's wcsp object
+//        open_->updateUb(work.ub); // update cub and clb that are attributes of worker's open queue
+
+        assert(work.open.size() == 1); // only one open node from the master
+
+        for (size_t i = 0; i < work.cp.size(); i++) {
+            addChoicePoint(work.cp[i].op, work.cp[i].varIndex, work.cp[i].value, work.cp[i].reverse); // update work cp->index
+        }
+
+        addOpenNode(*cp_, *open_, work.open[0].getCost()); // update of cp->stop and push node with first= cp-> start and last= cp->index
+        assert(open_->size() == 1);
+        assert(open_->top().first == 0);
+        assert(open_->top().last == work.cp.size());
+
+        cp_->store();
+
+        if (!work.hbfs) { // master is full, must switch to DFS only
+            ToulBar2::hbfs = 0;
+            ToulBar2::hbfsGlobalLimit = 0;
+            if (cluster) {
+                cluster->hbfsGlobalLimit = LONGLONG_MAX;
+                cluster->hbfsLimit = LONGLONG_MAX;
+            } else {
+                hbfsLimit = LONGLONG_MAX;
+            }
+        }
+        if (cluster) {
+            cluster->hbfsGlobalLimit = ((ToulBar2::hbfsGlobalLimit > 0) ? (nbBacktracks + ToulBar2::hbfsGlobalLimit) : LONGLONG_MAX);
+            cluster->hbfsLimit = ((ToulBar2::hbfs > 0) ? (cluster->nbBacktracks + ToulBar2::hbfs) : LONGLONG_MAX);
+            assert(wcsp->getTreeDec()->getCurrentCluster() == cluster);
+            wcsp->setUb(cub);
+            assert(cluster->isActive());
+            assert(cluster->getLbRec() == wcsp->getLb());
+        } else {
+            hbfsLimit = ((ToulBar2::hbfs > 0) ? (nbBacktracks + ToulBar2::hbfs) : LONGLONG_MAX);
+        }
+
+        int storedepthBFS = Store::getDepth();
+        int storeVAC = ToulBar2::vac;
+        try {
+            Store::store(); // store the depth of the DFS search
+            OpenNode nd = open_->top(); // get a reference on the best node (min lower bound or, in case of equality, max depth)
+            open_->pop();  // best node is taken from priority queue open
+            if (ToulBar2::verbose >= 3) {
+                if (wcsp->getTreeDec())
+                    cout << "[C" << wcsp->getTreeDec()->getCurrentCluster()->getId() << "] ";
+                cout << "[ " << nd.getCost() << ", " << cub << "] ( " << open_->size() << "+1 still open)" << endl;
+            }
+            if (ToulBar2::vac < 0 && Store::getDepth() + (nd.last - nd.first) >= abs(ToulBar2::vac))
+                ToulBar2::vac = 0;
+            restore(*cp_, nd);  // replay the sequence of decisions and recompute soft arc consistency
+            Cost bestlb = MAX(nd.getCost(), wcsp->getLb());
+            bestlb = MAX(bestlb, work.lb);
+            if (cluster) {
+                pair<Cost, Cost> res = recursiveSolve(cluster, bestlb, cub);
+                assert(res.first <= res.second);
+                assert(res.first >= bestlb);
+                assert(res.second <= cub);
+                assert(res.second == cub || cluster->getUb() == res.second);
+                assert(open_->empty() || open_->top().getCost() >= nd.getCost());
+                work.lb = MAX(work.lb, res.first);
+                cub = MIN(cub, res.second);
+            } else {
+                if (ToulBar2::vac < 0)
+                    ToulBar2::vac = 0;
+                recursiveSolve(bestlb); // call DFS
+                work.lb = MAX(work.lb, bestlb);
+                cub = MIN(cub, wcsp->getUb());
+            }
+        } catch (const Contradiction&) {
+            wcsp->whenContradiction();
+            work.lb = MAX(work.lb, wcsp->getUb());
+        }
+        if (!cluster) { // synchronize current upper bound with DFS (without tree decomposition)
+            cub = wcsp->getUb();
+        }
+        Store::restore(storedepthBFS);
+        ToulBar2::vac = storeVAC;
+        cp_->store();
+
+        if (cp_->size() >= static_cast<std::size_t>(ToulBar2::hbfsCPLimit) || open_->size() >= static_cast<std::size_t>(ToulBar2::hbfsOpenNodeLimit)) {
+            ToulBar2::hbfs = 0;
+            ToulBar2::hbfsGlobalLimit = 0;
+            if (cluster) {
+                cluster->hbfsGlobalLimit = LONGLONG_MAX;
+                cluster->hbfsLimit = LONGLONG_MAX;
+            } else {
+                hbfsLimit = LONGLONG_MAX;
+            }
+        }
+
+        if (ToulBar2::hbfs && nbRecomputationNodes > 0) { // wait until a nonempty open node is restored (at least after first global solution is found)
+            assert(nbNodes > 0);
+            if (nbRecomputationNodes > nbNodes / ToulBar2::hbfsBeta && ToulBar2::hbfs * 2 <= ToulBar2::hbfsGlobalLimit)
+                ToulBar2::hbfs *= 2;
+            else if (nbRecomputationNodes < nbNodes / ToulBar2::hbfsAlpha && ToulBar2::hbfs >= 2)
+                ToulBar2::hbfs /= 2;
+            if (ToulBar2::debug >= 2)
+                cout << "HBFS backtrack limit for worker#" << world.rank() << ": " << ToulBar2::hbfs << endl;
+        }
+
+        Cost newWorkerUb = wcsp->getSolutionCost();
+        vector<Value> workerSol;
+        if (newWorkerUb < work.ub) {
+            workerSol = wcsp->getSolution();
+            assert(cub == newWorkerUb);
+        }
+        Work work2(*cp_, *open_, nbNodes - initNbNodes, nbBacktracks - initNbBacktracks, wcsp->getNbDEE() - initNbDEE, work.lb, cub, workerSol); //  create the message with cub and open nodes information from local open and cp
+        if (ToulBar2::verbose >= 1)
+            cout << ">>> worker "  << world.rank() << " send message to master " << work2 << endl;
+        world.isend(MASTER, WORKTAG, work2); // non blocking send to master
+    }
+
+    assert(clb <= cub);
+    assert(false); // a worker should never stop, except by throwing an exception (TimeOut) when receiving DIETAG
+    return make_pair(clb, cub); // used only to avoid warnings: a worker should not return anything!
+}
+#endif
+
 void Solver::beginSolve(Cost ub)
 {
     // Last-minute compatibility checks for ToulBar2 selected options
-    if (ub <= MIN_COST) {
-        cerr << "Error: wrong initial primal bound (negative or zero)." << endl;
-        exit(1);
-    }
+    assert(ub > MIN_COST);
     if (ToulBar2::allSolutions && ToulBar2::btdMode == 1 && ub > 1) {
         cerr << "Error: Solution enumeration by BTD-like search methods is only possible for feasability (use -ub=1 and integer costs only)." << endl;
-        exit(1);
+        throw BadConfiguration();
     }
     if (ToulBar2::allSolutions && ToulBar2::btdMode == 1 && ub == 1 && ToulBar2::hbfs) {
         cerr << "Error: Hybrid best-first search cannot currently look for all solutions when BTD mode is activated. Shift to DFS (use -hbfs:)." << endl;
-        exit(1);
+        throw BadConfiguration();
     }
     if (ToulBar2::FullEAC && ToulBar2::vac > 1 && wcsp->numberOfConnectedConstraints() > wcsp->numberOfConnectedBinaryConstraints()) {
         cerr << "Warning: VAC during search and Full EAC variable ordering heuristic not implemented with non binary cost functions (remove -vacint option)." << endl;
-        exit(1);
+        throw BadConfiguration();
     }
 
     if (ToulBar2::searchMethod != DFBB) {
@@ -1717,9 +2165,15 @@ void Solver::beginSolve(Cost ub)
             ToulBar2::vnsKmax = wcsp->numberOfUnassignedVariables();
     }
     if (wcsp->isGlobal() && ToulBar2::btdMode >= 1) {
-        cout << "Error: cannot use BTD-like search methods with monolithic global cost functions (remove -B option)." << endl;
-        exit(1);
+        cout << "Error: cannot use BTD-like search methods with monolithic global cost functions (remove -B or -F options)." << endl;
+        throw BadConfiguration();
     }
+#ifdef ILOGCPLEX
+    if (wcsp->isPLPS() && ToulBar2::hbfs) {
+        cout << "Error: cannot use Hybrid best-first search with PLPS slinear global cost functions (add -hbfs: option)." << endl;
+        throw BadConfiguration();
+    }
+#endif
     if (wcsp->isGlobal() && (ToulBar2::elimDegree_preprocessing >= 1 || ToulBar2::elimDegree_preprocessing < -1)) {
         cout << "Warning! Cannot use generic variable elimination with global cost functions." << endl;
         ToulBar2::elimDegree_preprocessing = -1;
@@ -1761,6 +2215,16 @@ void Solver::beginSolve(Cost ub)
     lastConflictVar = -1;
     tailleSep = 0;
     ToulBar2::limited = false;
+#ifdef OPENMPI
+    if (ToulBar2::parallel) {
+        activeWork.clear();
+        bestsolWork.clear();
+        assert(idleQ.empty());
+        for (int i = 0; i < world.size(); i++) if (i != MASTER) {
+            idleQ.push(i);
+        }
+    }
+#endif
 
     if (ToulBar2::DEE)
         ToulBar2::DEE_ = ToulBar2::DEE; // enforces PSNS after closing the model
@@ -1828,8 +2292,6 @@ Cost Solver::preprocessing(Cost initialUpperBound)
             initialUpperBound = finiteUb;
         }
     }
-    if (ToulBar2::verbose >= 0)
-        cout << "Preprocessing time: " << cpuTime() - ToulBar2::startCpuTime << " seconds." << endl;
 
     // special data structure to be initialized for variable ordering heuristics
     initVarHeuristic();
@@ -1855,6 +2317,8 @@ Cost Solver::preprocessing(Cost initialUpperBound)
     ToulBar2::hbfs = hbfs_; // do not perform hbfs operations in preprocessing except for building tree decomposition
 
     if (ToulBar2::verbose >= 0)
+        cout << "Preprocessing time: " << cpuTime() - ToulBar2::startCpuTime << " seconds." << endl;
+    if (ToulBar2::verbose >= 0)
         cout << wcsp->numberOfUnassignedVariables() << " unassigned variables, " << wcsp->getDomainSizeSum() << " values in all current domains (med. size:" << wcsp->medianDomainSize() << ", max size:" << wcsp->getMaxCurrentDomainSize() << ") and " << wcsp->numberOfConnectedConstraints() << " non-unary cost functions (med. arity:" << wcsp->medianArity() << ", med. degree:" << wcsp->medianDegree() << ")" << endl;
     if (ToulBar2::verbose >= 0) {
         Double Dlb = wcsp->getDLb();
@@ -1872,10 +2336,13 @@ Cost Solver::preprocessing(Cost initialUpperBound)
         cout << "NegativeShiftingCost= " << wcsp->getNegativeLb() << endl;
 
     if (ToulBar2::btdMode) {
-        if (wcsp->numberOfUnassignedVariables() == 0 || wcsp->numberOfConnectedConstraints() == 0)
+        if (wcsp->numberOfUnassignedVariables() == 0 || wcsp->numberOfConnectedConstraints() == 0) {
             ToulBar2::approximateCountingBTD = 0;
-        ToulBar2::vac = 0; // VAC is not compatible with restricted tree decomposition propagation
-        wcsp->buildTreeDecomposition();
+            ToulBar2::btdMode = 0;
+        } else {
+            ToulBar2::vac = 0; // VAC is not compatible with restricted tree decomposition propagation
+            wcsp->buildTreeDecomposition();
+        }
     } else if (ToulBar2::weightedDegree && (((Long)wcsp->numberOfConnectedConstraints()) >= ((Long)ToulBar2::weightedDegree))) {
         if (ToulBar2::verbose >= 0)
             cout << "Weighted degree heuristic disabled (#costfunctions=" << wcsp->numberOfConnectedConstraints() << " >= " << ToulBar2::weightedDegree << ")" << endl;
@@ -1884,8 +2351,8 @@ Cost Solver::preprocessing(Cost initialUpperBound)
 
     if (ToulBar2::dumpWCSP) {
         dump_wcsp(ToulBar2::problemsaved_filename.c_str(), false, static_cast<ProblemFormat>((ToulBar2::dumpWCSP >> 1) + (ToulBar2::dumpWCSP & 1)));
-        cout << "end." << endl;
-        exit(0);
+        cout << "Problem saved after preprocessing, then program stopped." << endl;
+        throw TimeOut();
     }
 
     return initialUpperBound;
@@ -1899,7 +2366,7 @@ bool Solver::solve(bool first)
 
     Cost initialUpperBound = wcsp->getUb();
 
-    //        Store::store();       // if uncomment then solve() does not change the problem but all preprocessing operations will allocate in backtrackable memory
+    //        Store::store();   // if uncommented, solve() does not change the problem but all preprocessing operations will allocate in backtrackable memory
     int initdepth = Store::getDepth();
     try {
         try {
@@ -2075,7 +2542,7 @@ bool Solver::solve(bool first)
                             }
                             default: {
                                 cerr << "Unknown search method B" << ToulBar2::btdMode << endl;
-                                exit(EXIT_FAILURE);
+                                throw BadConfiguration();
                             }
                             }
                             if (ToulBar2::debug)
@@ -2132,8 +2599,8 @@ bool Solver::solve(bool first)
                                         //get solution from previous solve and add pairwise Hamming distance constraint
                                         if (energies.size() > 0 && !extrapolatedBound) {
                                             vector<Value> solutionvec = wcsp->getSolution();
-                                            map<int,Value> solutionmap;
-                                            for (Variable *x: wcsp->getDivVariables()) {
+                                            map<int, Value> solutionmap;
+                                            for (Variable* x : wcsp->getDivVariables()) {
                                                 solutionmap[x->wcspIndex] = solutionvec[x->wcspIndex];
                                             }
                                             int arity = wcsp->getDivVariables().size();
@@ -2150,8 +2617,8 @@ bool Solver::solve(bool first)
                                                 ((WCSP*)wcsp)->addTDivConstraint(wcsp->getDivVariables(), ToulBar2::divBound, solutionmap, ((WCSP*)wcsp)->divHVarsId[energies.size() - 1], true);
                                                 break;
                                             case 3:
-                                                parameters.append(to_string(-(arity-(int)ToulBar2::divBound)));
-                                                for (Variable *x: wcsp->getDivVariables()) {
+                                                parameters.append(to_string(-(arity - (int)ToulBar2::divBound)));
+                                                for (Variable* x : wcsp->getDivVariables()) {
                                                     scope.push_back(x->wcspIndex);
                                                     parameters.append(" 1 ");
                                                     parameters.append(to_string(solutionmap[x->wcspIndex]));
@@ -2161,7 +2628,7 @@ bool Solver::solve(bool first)
                                                 break;
                                             default:
                                                 cerr << "Error: no such diversity encoding method: " << ToulBar2::divMethod << endl;
-                                                exit(EXIT_FAILURE);
+                                                throw BadConfiguration();
                                             }
                                             // wcsp->propagate(); it will propagate with a possibly modified DAC order at previous iterations resulting in undefined behavior
                                         }
@@ -2212,7 +2679,7 @@ bool Solver::solve(bool first)
                                                         break;
                                                     default:
                                                         cerr << "Error: no such MDD diversity encoding method: " << ToulBar2::divMethod << endl;
-                                                        exit(EXIT_FAILURE);
+                                                        throw BadConfiguration();
                                                     }
                                                 }
                                                 // reactivate on-the-fly variable elimination and dead-end elimination (undone in preprocessing on diversity variables and later deactivated by endSolve call)
@@ -2279,6 +2746,8 @@ bool Solver::solve(bool first)
             wcsp->whenContradiction();
         }
     } catch (const SolverOut&) {
+        wcsp->whenContradiction();
+        ToulBar2::interrupted = false;
     }
     Store::restore(initdepth);
     //  Store::restore();         // see above for Store::store()
@@ -2314,7 +2783,7 @@ void Solver::endSolve(bool isSolution, Cost cost, bool isComplete)
         return;
     }
     if (ToulBar2::allSolutions) {
-        if (ToulBar2::verbose >=0) {
+        if (ToulBar2::verbose >= 0) {
             if (ToulBar2::approximateCountingBTD)
                 cout << "Number of solutions    : ~= " << std::fixed << std::setprecision(0) << nbSol << std::setprecision(DECIMAL_POINT) << endl;
             else {
@@ -2337,8 +2806,48 @@ void Solver::endSolve(bool isSolution, Cost cost, bool isComplete)
     if (ToulBar2::vac)
         wcsp->printVACStat();
 
+#ifdef OPENMPI
+    if (((ToulBar2::verbose >= 0 && !ToulBar2::parallel) || (ToulBar2::parallel && ToulBar2::verbose == -1 && world.rank() != MASTER)) && nbHybrid >= 1 && nbNodes > 0) {
+        cout << "Node redundancy during HBFS: " << 100. * nbRecomputationNodes / nbNodes;
+        if (ToulBar2::parallel) cout << " % (#pid: " << world.rank() << ")";
+        cout << endl;
+    }
+#else
     if (ToulBar2::verbose >= 0 && nbHybrid >= 1 && nbNodes > 0)
-        cout << "Node redundancy during HBFS: " << 100. * nbRecomputationNodes / nbNodes << " %" << endl;
+        cout << "Node redundancy during HBFS: " << 100. * nbRecomputationNodes / nbNodes << endl;
+#endif
+
+    if (ToulBar2::verbose >= 0 && ToulBar2::heuristicFreedom && wcsp->getTreeDec()) {
+        cout << "Summary of adaptive BTD: " << endl;
+        double sum = nbChoices + nbForcedChoices + nbForcedChoiceChange + nbReadOnly;
+        if (sum != 0)
+            cout << "% of new positive choices (i.e. cluster subtree is merged): " << (nbChoices / sum) * 100.0 << endl;
+        else
+            cout << "% of new positive choices: NA" << endl;
+
+        if (nbChoices != 0)
+            cout << "% of transitions (from positive/merged to negative/unmerged) due to an unproductive exploration (w.r.t positive choices): " << (nbChoiceChange / nbChoices) * 100.0 << endl;
+        else
+            cout << "% of transitions (from positive/merged to negative/unmerged) due to an unproductive exploration (w.r.t positive choices): NA" << endl;
+
+        if (sum != 0)
+            cout << "% of transitions due to nogood propagation: " << (nbForcedChoiceChange / sum) * 100.0 << endl;
+        else
+            cout << "% of transitions due to nogood propagation: NA" << endl;
+
+        if (sum != 0)
+            cout << "% of forced negative choices due to nogood propagation: " << (nbForcedChoices / sum) * 100.0 << endl;
+        else
+            cout << "% of forced negative choices due to nogood propagation: NA" << endl;
+
+        if (sum != 0)
+            cout << "% of choices without change: " << (nbReadOnly / sum) * 100.0 << endl;
+        else
+            cout << "% of choices without change: NA" << endl;
+
+        cout << "Maximum cluster depth visited during search / maximum cluster depth of the original tree decomposition (except the root): " << solveDepth << " / " << wcsp->getTreeDec()->getMaxDepth() << endl;
+        ;
+    }
 
     if (isSolution) {
         if (ToulBar2::verbose >= 0 && !ToulBar2::uai && !ToulBar2::xmlflag && !ToulBar2::maxsateval) {
@@ -2356,7 +2865,7 @@ void Solver::endSolve(bool isSolution, Cost cost, bool isComplete)
         } else {
             if (ToulBar2::xmlflag) {
                 ((WCSP*)wcsp)->solution_XML(true);
-            } else if (ToulBar2::uai && !ToulBar2::isZ) {
+            } else if (ToulBar2::verbose >= 0 && ToulBar2::uai && !ToulBar2::isZ) {
                 if (isLimited == 2)
                     cout << "(" << ToulBar2::deltaUbS << "," << std::scientific << ToulBar2::deltaUbRelativeGap << std::fixed << ")-";
                 cout << solType[isLimited] << cost << " energy: " << -(wcsp->Cost2LogProb(cost) + ToulBar2::markov_log) << std::scientific << " prob: " << wcsp->Cost2Prob(cost) * Exp(ToulBar2::markov_log) << std::fixed << " in " << nbBacktracks << " backtracks and " << nbNodes << " nodes" << ((ToulBar2::DEE) ? (" ( " + to_string(wcsp->getNbDEE()) + " removals by DEE)") : "") << " and " << cpuTime() - ToulBar2::startCpuTime << " seconds." << endl;
@@ -2605,7 +3114,7 @@ void Solver::addOpenNode(CPStore& cp, OpenList& open, Cost lb, Cost delta)
 //            break;
 //        default:
 //            cerr << "unknown choice point for hybrid best first search!!!" << endl;
-//            exit(EXIT_FAILURE);
+//            throw InternalError();
 //        }
 //    }
 //}
@@ -2622,13 +3131,13 @@ void Solver::restore(CPStore& cp, OpenNode nd)
     assert(nd.last >= nd.first);
 
     ptrdiff_t maxsize = nd.last - nd.first;
-    if (maxsize==0) {
+    if (maxsize == 0) {
         wcsp->enforceUb();
         wcsp->propagate();
         return;
     }
     nbRecomputationNodes += maxsize;
-    ChoicePoint *permute[maxsize];
+    ChoicePoint* permute[maxsize];
     int assignLS[maxsize];
     Value valueLS[maxsize];
     unsigned int size = 0;
@@ -2639,13 +3148,13 @@ void Solver::restore(CPStore& cp, OpenNode nd)
             permute[pos] = &cp[idx];
             ++pos;
         }
-        assert(pos==maxsize);
+        assert(pos == maxsize);
         shuffle(&permute[0], &permute[maxsize], myrandom_generator);
     }
     for (ptrdiff_t idx = nd.first; idx < nd.last; ++idx) {
         assert((size_t)idx < cp.size());
-        ChoicePoint *cp_ptr = ((randomOrder)? permute[idx - nd.first] : &cp[idx]);
-        assert(!wcsp->getTreeDec() || wcsp->getTreeDec()->getCurrentCluster()->isVar(cp_ptr->varIndex));
+        ChoicePoint* cp_ptr = ((randomOrder) ? permute[idx - nd.first] : &cp[idx]);
+        assert(!wcsp->getTreeDec() || wcsp->getTreeDec()->getCurrentCluster()->isVar(cp_ptr->varIndex) || (wcsp->getTreeDec()->getCurrentCluster()->getFreedom() && wcsp->getTreeDec()->getCurrentCluster()->isVarTree(cp_ptr->varIndex)));
         if ((cp_ptr->op == CP_ASSIGN && !(cp_ptr->reverse && cp_ptr != &cp[nd.last - 1])) || (cp_ptr->op == CP_REMOVE && cp_ptr->reverse && cp_ptr != &cp[nd.last - 1])) {
             assignLS[size] = cp_ptr->varIndex;
             valueLS[size] = cp_ptr->value;
@@ -2656,7 +3165,7 @@ void Solver::restore(CPStore& cp, OpenNode nd)
     wcsp->assignLS(assignLS, valueLS, size, false); // fast multiple assignments
     for (ptrdiff_t idx = nd.first; idx < nd.last; ++idx) {
         assert((size_t)idx < cp.size());
-        ChoicePoint *cp_ptr = ((randomOrder)? permute[idx - nd.first] : &cp[idx]);
+        ChoicePoint* cp_ptr = ((randomOrder) ? permute[idx - nd.first] : &cp[idx]);
         if (ToulBar2::verbose >= 1)
             cout << "retrieve choice point " << CPOperation[cp_ptr->op] << ((cp_ptr->reverse) ? "*" : "") << " (" << wcsp->getName(cp_ptr->varIndex) << ", " << cp_ptr->value << ") at position " << (cp_ptr - &cp[nd.first]) << endl;
         if (ToulBar2::verbose >= 1)
@@ -2702,12 +3211,85 @@ void Solver::restore(CPStore& cp, OpenNode nd)
         }
         default: {
             cerr << "unknown choice point for hybrid best first search!!!" << endl;
-            exit(EXIT_FAILURE);
+            throw InternalError();
         }
         }
     }
     wcsp->propagate();
     //if (wcsp->getLb() != nd.getCost(((wcsp->getTreeDec())?wcsp->getTreeDec()->getCurrentCluster()->getCurrentDelta():MIN_COST))) cout << "***** node cost: " << nd.getCost(((wcsp->getTreeDec())?wcsp->getTreeDec()->getCurrentCluster()->getCurrentDelta():MIN_COST)) << " but lb: " << wcsp->getLb() << endl;
+}
+
+/**
+ *
+ * \brief Convert a choice point operation into a symbol taking into account boolean reverse stuff
+ *        with the following  convention:
+ * ASSIGN:     =        ( equivalent to assign(variable, value) )
+ * REMOVE:     #        ( equivalent to remove(variable, value) )
+ * INCREASE:   >       (warning  : equivalent to increase(variable, value+1) )
+ * DECREASE:   <       (warning  :  equivalent to decrease(variable, value-1) )
+ */
+char Solver::opSymbol(const CPStore& cp, const ptrdiff_t idx, OpenNode nd)
+{
+    switch (cp[idx].op) {
+    case CP_ASSIGN: {
+        if (cp[idx].reverse && idx < nd.last - 1) {
+            return '#';
+        } else
+            return '=';
+        break;
+    }
+    case CP_REMOVE: {
+        if (cp[idx].reverse && idx < nd.last - 1) {
+            return '=';
+        } else {
+            return '#';
+        }
+        break;
+    }
+    case CP_INCREASE: {
+        if (cp[idx].reverse && idx < nd.last - 1) {
+            return '<';
+        } else {
+            return '>';
+        }
+        break;
+    }
+    case CP_DECREASE: {
+        if (cp[idx].reverse && idx < nd.last - 1) {
+            return '>';
+        } else {
+            return '<';
+        }
+        break;
+    }
+    default: {
+        cerr << "unknown choice point for hybrid best first search!!!" << endl;
+        throw InternalError();
+    }
+    }
+}
+
+void Solver::epsDumpSubProblems(CPStore& cp, OpenList& open)
+{
+    ofstream epsfile(ToulBar2::epsFilename);
+    if (!epsfile) {
+        cerr << "Cannot open file for EPS! " << ToulBar2::epsFilename << endl;
+        throw WrongFileFormat();
+    }
+    Long nbsp = 0;
+    while (!open.finished()) {
+        OpenNode nd = open.top();
+        open.pop();
+        if (nd.getCost() < wcsp->getUb()) {
+            string epsSubProblem = "-x=\"";
+            for (ptrdiff_t idx = nd.first; idx < nd.last; ++idx) {
+                epsSubProblem += "," + to_string(cp[idx].varIndex) + opSymbol(cp, idx, nd) + to_string(cp[idx].value);
+            }
+            epsfile << epsSubProblem << "\"" << endl;
+            nbsp++;
+        }
+    }
+    cout << endl << "Generating " << nbsp << " subproblems for EPS done in file " << ToulBar2::epsFilename << "." << endl << "Run them in parallel using " << std::thread::hardware_concurrency() << " cores, e.g. (*check pathname for original problem file*):" << endl << "./misc/script/eps.sh " << std::thread::hardware_concurrency() << " ./" << ToulBar2::epsFilename << " ./toulbar2 ./" << wcsp->getName() << " -ub=" << wcsp->getUb() << endl << endl;
 }
 
 Solver::SolutionTrie::TrieNode::TrieNode(size_t w)

@@ -72,13 +72,20 @@ bool Constraint::reviseEACGreedySolution(int index, Value support)
 Long Constraint::getDomainSizeProduct() const
 {
     if (arity() == 0)
-        return 0;
+        return 1;
     Long cartesianProduct = 1;
     for (int i = 0; i < arity(); i++) {
-        // trap overflow numbers
+// trap overflow numbers
+#if __GNUC__ >= 5
+        if (__builtin_smulll_overflow(cartesianProduct,
+                getVar(i)->getDomainSize(),
+                &cartesianProduct))
+            return LONGLONG_MAX;
+#else
         if (cartesianProduct > LONGLONG_MAX / MAX_DOMAIN_SIZE)
             return LONGLONG_MAX;
         cartesianProduct *= getVar(i)->getDomainSize();
+#endif
     }
     return cartesianProduct;
 }
@@ -157,7 +164,7 @@ void Constraint::assignCluster()
             if (lowest->isDescendant(c))
                 lowest = c;
         }
-    cluster = lowest->getId();
+    setCluster(lowest->getId());
 }
 
 /// \warning always returns 0 for cost functions in intention
@@ -453,24 +460,24 @@ int Constraint::cmpConstraint(Constraint* c1, Constraint* c2)
 {
     bool result = false;
     switch (abs(ToulBar2::constrOrdering)) {
-                    case CONSTR_ORDER_ID:
-                        result = cmpConstraintId(c1,c2);
-                        break;
-                    case CONSTR_ORDER_DAC:
-                        result = cmpConstraintDAC(c1,c2);
-                        break;
-                    case CONSTR_ORDER_TIGHTNESS:
-                        result = cmpConstraintTightness(c1,c2);
-                        break;
-                    case CONSTR_ORDER_DAC_TIGHTNESS:
-                        result = cmpConstraintDACTightness(c1,c2);
-                        break;
-                    case CONSTR_ORDER_TIGHTNESS_DAC:
-                        result = cmpConstraintTightnessDAC(c1,c2);
-                        break;
-                    default:
-                        cerr << "Unknown constraint ordering value " << ToulBar2::constrOrdering << endl;
-                        exit(EXIT_FAILURE);
+    case CONSTR_ORDER_ID:
+        result = cmpConstraintId(c1, c2);
+        break;
+    case CONSTR_ORDER_DAC:
+        result = cmpConstraintDAC(c1, c2);
+        break;
+    case CONSTR_ORDER_TIGHTNESS:
+        result = cmpConstraintTightness(c1, c2);
+        break;
+    case CONSTR_ORDER_DAC_TIGHTNESS:
+        result = cmpConstraintDACTightness(c1, c2);
+        break;
+    case CONSTR_ORDER_TIGHTNESS_DAC:
+        result = cmpConstraintTightnessDAC(c1, c2);
+        break;
+    default:
+        cerr << "Unknown constraint ordering value " << ToulBar2::constrOrdering << endl;
+        throw BadConfiguration();
     }
     if (ToulBar2::constrOrdering >= 0) {
         return result;
@@ -484,24 +491,24 @@ int Constraint::cmpConstraintLink(DLink<ConstraintLink>* c1, DLink<ConstraintLin
 {
     bool result = false;
     switch (abs(ToulBar2::constrOrdering)) {
-                    case CONSTR_ORDER_ID:
-                        result = cmpConstraintId(c1,c2);
-                        break;
-                    case CONSTR_ORDER_DAC:
-                        result = cmpConstraintDAC(c1,c2);
-                        break;
-                    case CONSTR_ORDER_TIGHTNESS:
-                        result = cmpConstraintTightness(c1,c2);
-                        break;
-                    case CONSTR_ORDER_DAC_TIGHTNESS:
-                        result = cmpConstraintDACTightness(c1,c2);
-                        break;
-                    case CONSTR_ORDER_TIGHTNESS_DAC:
-                        result = cmpConstraintTightnessDAC(c1,c2);
-                        break;
-                    default:
-                        cerr << "Unknown constraint ordering value " << ToulBar2::constrOrdering << endl;
-                        exit(EXIT_FAILURE);
+    case CONSTR_ORDER_ID:
+        result = cmpConstraintId(c1, c2);
+        break;
+    case CONSTR_ORDER_DAC:
+        result = cmpConstraintDAC(c1, c2);
+        break;
+    case CONSTR_ORDER_TIGHTNESS:
+        result = cmpConstraintTightness(c1, c2);
+        break;
+    case CONSTR_ORDER_DAC_TIGHTNESS:
+        result = cmpConstraintDACTightness(c1, c2);
+        break;
+    case CONSTR_ORDER_TIGHTNESS_DAC:
+        result = cmpConstraintTightnessDAC(c1, c2);
+        break;
+    default:
+        cerr << "Unknown constraint ordering value " << ToulBar2::constrOrdering << endl;
+        throw BadConfiguration();
     }
     if (ToulBar2::constrOrdering >= 0) {
         return result;
@@ -509,7 +516,6 @@ int Constraint::cmpConstraintLink(DLink<ConstraintLink>* c1, DLink<ConstraintLin
         return (!result);
     }
 }
-
 
 /* Local Variables: */
 /* c-basic-offset: 4 */

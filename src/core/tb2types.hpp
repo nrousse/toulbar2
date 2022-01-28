@@ -34,6 +34,30 @@
 #include <quadmath.h> // only with gcc/g++
 #endif
 
+using std::min;
+using std::max;
+using std::cout;
+using std::cerr;
+using std::cin;
+using std::endl;
+using std::istream;
+using std::ifstream;
+using std::stringstream;
+using std::istringstream;
+using std::ostringstream;
+using std::ofstream;
+using std::numeric_limits;
+using std::string;
+using std::map;
+using std::set;
+using std::make_pair;
+using std::make_tuple;
+using std::tuple;
+using std::tie;
+using std::list;
+using std::stack;
+using std::queue;
+
 /// Special character value at the beginning of a variable's name to identify implicit variables (i.e., variables which are not decision variables)
 const string IMPLICIT_VAR_TAG = "#";
 
@@ -69,32 +93,7 @@ const int MAX_BRANCH_SIZE = 1000000;
 const ptrdiff_t CHOICE_POINT_LIMIT = SIZE_MAX - MAX_BRANCH_SIZE;
 const ptrdiff_t OPEN_NODE_LIMIT = SIZE_MAX;
 
-#ifdef SHORT_COST
-const bool PARTIALORDER = false;
-typedef int16_t Cost;
-const Cost MIN_COST = short{ 0 };
-const Cost UNIT_COST = short{ 1 };
-const Cost SMALL_COST = short{ 1 };
-const Cost MEDIUM_COST = short{ 3 };
-const Cost LARGE_COST = short{ 100 };
-const Cost MAX_COST = (std::numeric_limits<Cost>::max() / MEDIUM_COST);
-
-#if defined __has_builtin
-#  if __has_builtin (__builtin_sadd_overflow)
-inline bool Add(Cost a, Cost b, Cost* c) { return __builtin_sadd_overflow(a, b, c); }
-#  endif
-#  if __has_builtin (__builtin_ssub_overflow)
-inline bool Sub(Cost a, Cost b, Cost* c) { return __builtin_ssub_overflow(a, b, c); }
-#  endif
-#  if __has_builtin (__builtin_smul_overflow)
-inline bool Mul(Cost a, Cost b, Cost* c) { return __builtin_smul_overflow(a, b, c); }
-#  endif
-#else
-inline bool Add(Cost a, Cost b, Cost* c) { *c = a + b; return false; }
-inline bool Sub(Cost a, Cost b, Cost* c) { *c = a - b; return false; }
-inline bool Mul(Cost a, Cost b, Cost* c) { *c = a * b; return false; }
-#endif
-
+#if (defined(SHORT_COST) || defined(SHORT_VALUE))
 //C++ integer promotion occurs on any arithmetic operation (i.e. int16_t ope int_16_t results to int type conversion)
 inline int16_t min(int16_t x, int y)
 {
@@ -124,8 +123,59 @@ inline int16_t max(int x, int16_t y)
     else
         return y;
 }
+#endif
 
-inline Cost MIN(Cost a, Cost b) { return min(a, b); }
+#ifdef SHORT_COST
+const bool PARTIALORDER = false;
+typedef int16_t Cost;
+const Cost MIN_COST = short{ 0 };
+const Cost UNIT_COST = short{ 1 };
+const Cost SMALL_COST = short{ 1 };
+const Cost MEDIUM_COST = short{ 3 };
+const Cost LARGE_COST = short{ 100 };
+const Cost MAX_COST = (std::numeric_limits<Cost>::max() / MEDIUM_COST);
+
+#if defined __has_builtin
+#if __has_builtin(__builtin_sadd_overflow)
+inline bool Add(Cost a, Cost b, Cost* c)
+{
+    return __builtin_sadd_overflow(a, b, c);
+}
+#endif
+#if __has_builtin(__builtin_ssub_overflow)
+inline bool Sub(Cost a, Cost b, Cost* c)
+{
+    return __builtin_ssub_overflow(a, b, c);
+}
+#endif
+#if __has_builtin(__builtin_smul_overflow)
+inline bool Mul(Cost a, Cost b, Cost* c)
+{
+    return __builtin_smul_overflow(a, b, c);
+}
+#endif
+#else
+inline bool Add(Cost a, Cost b, Cost* c)
+{
+    *c = a + b;
+    return false;
+}
+inline bool Sub(Cost a, Cost b, Cost* c)
+{
+    *c = a - b;
+    return false;
+}
+inline bool Mul(Cost a, Cost b, Cost* c)
+{
+    *c = a * b;
+    return false;
+}
+#endif
+
+inline Cost MIN(Cost a, Cost b)
+{
+    return min(a, b);
+}
 inline Cost MAX(Cost a, Cost b) { return max(a, b); }
 inline Cost MULT(Cost a, double b)
 {
@@ -138,7 +188,7 @@ inline Cost MULT(Cost a, double b)
         return a * b;
     else {
         cerr << "Error: cost multiplication overflow!" << endl;
-        exit(1);
+        throw InternalError();
     }
 }
 inline Cost GLB(Cost a, Cost b) { return MIN(a, b); }
@@ -178,22 +228,46 @@ const Cost LARGE_COST = 100;
 const Cost MAX_COST = ((std::numeric_limits<Cost>::max() / 2) / MEDIUM_COST / MEDIUM_COST);
 
 #if defined __has_builtin
-#  if __has_builtin (__builtin_saddl_overflow)
-inline bool Add(Cost a, Cost b, Cost* c) { return __builtin_saddl_overflow(a, b, c); }
-#  endif
-#  if __has_builtin (__builtin_ssubl_overflow)
-inline bool Sub(Cost a, Cost b, Cost* c) { return __builtin_ssubl_overflow(a, b, c); }
-#  endif
-#  if __has_builtin (__builtin_smull_overflow)
-inline bool Mul(Cost a, Cost b, Cost* c) { return __builtin_smull_overflow(a, b, c); }
-#  endif
+#if __has_builtin(__builtin_saddl_overflow)
+inline bool Add(Cost a, Cost b, Cost* c)
+{
+    return __builtin_saddl_overflow(a, b, c);
+}
+#endif
+#if __has_builtin(__builtin_ssubl_overflow)
+inline bool Sub(Cost a, Cost b, Cost* c)
+{
+    return __builtin_ssubl_overflow(a, b, c);
+}
+#endif
+#if __has_builtin(__builtin_smull_overflow)
+inline bool Mul(Cost a, Cost b, Cost* c)
+{
+    return __builtin_smull_overflow(a, b, c);
+}
+#endif
 #else
-inline bool Add(Cost a, Cost b, Cost* c) { *c = a + b; return false; }
-inline bool Sub(Cost a, Cost b, Cost* c) { *c = a - b; return false; }
-inline bool Mul(Cost a, Cost b, Cost* c) { *c = a * b; return false; }
+inline bool Add(Cost a, Cost b, Cost* c)
+{
+    *c = a + b;
+    return false;
+}
+inline bool Sub(Cost a, Cost b, Cost* c)
+{
+    *c = a - b;
+    return false;
+}
+inline bool Mul(Cost a, Cost b, Cost* c)
+{
+    *c = a * b;
+    return false;
+}
 #endif
 
-inline Cost MIN(Cost a, Cost b) { return min(a, b); }
+inline Cost MIN(Cost a, Cost b)
+{
+    return min(a, b);
+}
 inline Cost MAX(Cost a, Cost b) { return max(a, b); }
 inline Cost MULT(Cost a, double b)
 {
@@ -206,7 +280,7 @@ inline Cost MULT(Cost a, double b)
         return a * b;
     else {
         cerr << "Error: cost multiplication overflow!" << endl;
-        exit(1);
+        throw InternalError();
     }
 }
 inline Cost GLB(Cost a, Cost b) { return MIN(a, b); }
@@ -261,22 +335,46 @@ const Cost LARGE_COST = 100;
 const Cost MAX_COST = ((LONGLONG_MAX / 2) / MEDIUM_COST / MEDIUM_COST);
 
 #if defined __has_builtin
-#  if __has_builtin (__builtin_saddll_overflow)
-inline bool Add(Cost a, Cost b, Cost* c) { return __builtin_saddll_overflow(a, b, c); }
-#  endif
-#  if __has_builtin (__builtin_ssubll_overflow)
-inline bool Sub(Cost a, Cost b, Cost* c) { return __builtin_ssubll_overflow(a, b, c); }
-#  endif
-#  if __has_builtin (__builtin_smulll_overflow)
-inline bool Mul(Cost a, Cost b, Cost* c) { return __builtin_smulll_overflow(a, b, c); }
-#  endif
+#if __has_builtin(__builtin_saddll_overflow)
+inline bool Add(Cost a, Cost b, Cost* c)
+{
+    return __builtin_saddll_overflow(a, b, c);
+}
+#endif
+#if __has_builtin(__builtin_ssubll_overflow)
+inline bool Sub(Cost a, Cost b, Cost* c)
+{
+    return __builtin_ssubll_overflow(a, b, c);
+}
+#endif
+#if __has_builtin(__builtin_smulll_overflow)
+inline bool Mul(Cost a, Cost b, Cost* c)
+{
+    return __builtin_smulll_overflow(a, b, c);
+}
+#endif
 #else
-inline bool Add(Cost a, Cost b, Cost* c) { *c = a + b; return false; }
-inline bool Sub(Cost a, Cost b, Cost* c) { *c = a - b; return false; }
-inline bool Mul(Cost a, Cost b, Cost* c) { *c = a * b; return false; }
+inline bool Add(Cost a, Cost b, Cost* c)
+{
+    *c = a + b;
+    return false;
+}
+inline bool Sub(Cost a, Cost b, Cost* c)
+{
+    *c = a - b;
+    return false;
+}
+inline bool Mul(Cost a, Cost b, Cost* c)
+{
+    *c = a * b;
+    return false;
+}
 #endif
 
-inline Cost MIN(Cost a, Cost b) { return min(a, b); }
+inline Cost MIN(Cost a, Cost b)
+{
+    return min(a, b);
+}
 inline Cost MAX(Cost a, Cost b) { return max(a, b); }
 inline Cost MULT(Cost a, double b)
 {
@@ -289,7 +387,7 @@ inline Cost MULT(Cost a, double b)
         return (Cost)((double)a * b);
     else {
         cerr << "Error: cost multiplication overflow!" << endl;
-        exit(1);
+        throw InternalError();
     }
 }
 inline Cost GLB(Cost a, Cost b) { return MIN(a, b); }
@@ -369,8 +467,8 @@ inline TLogProb GLogSubExp(TLogProb logc1, TLogProb logc2) // log[exp(c1) - exp(
     else if (logc1 > logc2)
         return logc1 + (Log(-Expm1(logc2 - logc1)));
     else {
-        cerr << "My oh my ! Try to Logarithm a negative number" << endl;
-        exit(0);
+        cerr << "My oh my ! Try to logarithm a negative number" << endl;
+        throw InternalError();
     }
 }
 const int STORE_SIZE = 16;
@@ -507,6 +605,14 @@ typedef enum {
     RPDGVNS,
     TREEDEC
 } SearchMethod;
+
+typedef enum {
+    NOBTD,
+    BTD,
+    RDSBTD,
+    RDS,
+    ADAPTBTD
+} BTDMethod;
 
 typedef enum {
     LS_INIT_RANDOM = -1,
@@ -664,6 +770,7 @@ public:
     static bool vacValueHeuristic;
     static BEP* bep;
     static LcLevelType LcLevel;
+    static int maxEACIter;
     static bool wcnf;
     static bool qpbo;
     static double qpboQuadraticCoefMultiplier;
@@ -679,6 +786,8 @@ public:
     static int btdMode;
     static int btdSubTree;
     static int btdRootCluster;
+    static int rootHeuristic;
+    static bool reduceHeight;
 
     static bool maxsateval;
     static bool xmlflag;
@@ -702,10 +811,13 @@ public:
     static int minProperVarSize;
     static int smallSeparatorSize;
 
+    static bool heuristicFreedom; // the freedom heuristic used for BTD-like algorithms (if one is used)
+    static int heuristicFreedomLimit; // the freedom limit
+
     static bool Berge_Dec; // flag for berge acyclic decomposition
     static bool learning; // if true, perform pseudoboolean learning
     static externalfunc timeOut;
-    static bool interrupted;
+    static std::atomic<bool> interrupted;
     static int seed;
 
     static string incop_cmd;
@@ -732,7 +844,8 @@ public:
     static bool vnsParallelSync; // true if RSGDVNS else RADGVNS
     static string vnsOptimumS;
     static Cost vnsOptimum; // stops VNS if solution found with this cost (or better)
-    static bool vnsParallel; // true if in master/slaves paradigm
+
+    static bool parallel; // true if in master/slaves paradigm (hbfs or vns)
 
     static Long hbfs; // hybrid best-first search mode (used as a limit on the number of backtracks before visiting another open search node)
     static Long hbfsGlobalLimit; // limit on the number of nodes before stopping the search on the current cluster subtree problem
@@ -740,6 +853,8 @@ public:
     static Long hbfsBeta; // inverse of maximum node redundancy goal limit
     static ptrdiff_t hbfsCPLimit; // limit on the number of choice points stored inside open node list
     static ptrdiff_t hbfsOpenNodeLimit; // limit on the number of open nodes
+    static Long eps; // Number of open nodes to collect before exit
+    static string epsFilename; // Filename for EPS output
 
     static bool verifyOpt; // if true, for debugging purposes, checks the given optimal solution (problem.sol) is not pruned during search
     static Cost verifiedOptimum; // for debugging purposes, cost of the given optimal solution
@@ -847,10 +962,12 @@ bool compareWCSPIndex(const T* lhs, const T* rhs)
         right = MAX_ELIM_BIN - right;
     return left < right;
 }
+
 template <class T>
 struct Compare {
     typedef bool (*compare_t)(const T*, const T*);
 };
+
 template <class T>
 class Set : public set<T*, typename Compare<T>::compare_t> {
 public:
@@ -859,6 +976,7 @@ public:
     {
     }
 };
+
 typedef Set<Constraint> ConstraintSet;
 typedef Set<Variable> VariableSet;
 

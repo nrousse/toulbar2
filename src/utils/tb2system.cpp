@@ -6,6 +6,10 @@
 
 //Must be included after tb2types.hpp
 #include "tb2system.hpp"
+#include "tb2utils.hpp"
+#include "tb2btlist.hpp"
+#include "tb2store.hpp"
+#include "search/tb2solver.hpp"
 
 #ifdef LONGDOUBLE_PROB
 const char* PrintFormatProb = "%Lf";
@@ -13,7 +17,7 @@ const char* PrintFormatProb = "%Lf";
 const char* PrintFormatProb = "%lf";
 #endif
 
-std::mt19937 myrandom_generator{std::random_device{}()};
+std::mt19937 myrandom_generator{ std::random_device{}() };
 
 /* --------------------------------------------------------------------
 // Timer management functions
@@ -46,25 +50,19 @@ void timeOut(int sig)
 {
     if (ToulBar2::verbose >= 0) {
         cout << endl
-             << "Time limit expired... Aborting..." << endl;
+             << "Time limit expired... Aborting..."
+             << endl;
         cout.flush();
-    }
-
-    if (ToulBar2::solutionFile != NULL) {
-        if (ftruncate(fileno(ToulBar2::solutionFile), ftell(ToulBar2::solutionFile)))
-            exit(EXIT_FAILURE);
-        fclose(ToulBar2::solutionFile);
-    }
-    if (ToulBar2::solution_uai_file != NULL) {
-        if (ftruncate(fileno(ToulBar2::solution_uai_file), ftell(ToulBar2::solution_uai_file)))
-            exit(EXIT_FAILURE);
-        fclose(ToulBar2::solution_uai_file);
     }
 
     if (ToulBar2::timeOut)
         ToulBar2::timeOut();
-    else
-        exit(0);
+
+#ifdef OPENMPI
+    if (ToulBar2::parallel)
+        mpi::environment::abort(0); // Warning! it will kill all processes without saving last solution found properly except if it is the master
+#endif
+    ToulBar2::interrupted = true;
 }
 
 static struct itimerval thetimer = { { 0, 0 }, { 0, 0 } };
@@ -91,7 +89,9 @@ void timerStop()
 }
 
 #else
-void timeOut(int sig) {}
+void timeOut(int sig)
+{
+}
 double cpuTime()
 {
     return (double)(clock() / CLOCKS_PER_SEC);

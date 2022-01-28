@@ -66,7 +66,7 @@ public:
             fromElim2->incConflictWeight(from);
     }
     void incConflictWeight(Long incval) { conflictWeight += incval; }
-    virtual void resetConflictWeight() { conflictWeight = 1 + ((ToulBar2::weightedTightness) ? getTightness() : 0); }
+    virtual void resetConflictWeight() { tight = -1; conflictWeight = 1 + ((ToulBar2::weightedTightness) ? getTightness() : 0); } // side-effect: recompute tightness if needed
     void elimFrom(Constraint* from1, Constraint* from2 = NULL)
     {
         fromElim1 = from1;
@@ -199,7 +199,7 @@ public:
     virtual bool ishard();
 
     virtual Cost getMinCost();
-    virtual pair<pair<Cost, Cost>, pair<Cost, Cost>> getMaxCost(int index, Value a, Value b) { return make_pair(make_pair(MAX_COST, MAX_COST), make_pair(MAX_COST, MAX_COST)); }
+    virtual pair<pair<Cost, Cost>, pair<Cost, Cost>> getMaxCost(int index, Value a, Value b) { return std::make_pair(std::make_pair(MAX_COST, MAX_COST), std::make_pair(MAX_COST, MAX_COST)); }
     virtual Cost getMaxFiniteCost();
     virtual void setInfiniteCost(Cost ub) {}
 
@@ -285,17 +285,21 @@ public:
         return 0;
     }
 
-    //   added for tree decomposition stuff
-    int cluster;
+    //   added for tree decomposition
+    int cluster; ///\brief warning! this value should not change during search (except for initialization in binary/ternary elimination pool)
     int getCluster() { return cluster; }
-    void setCluster(int i) { cluster = i; }
+    void setCluster(int i)
+    {
+        assert(cluster == -1 || Store::getDepth() == 0);
+        cluster = i;
+    }
     void assignCluster();
 
-    bool isSep_;
+    bool isSep_; ///\brief true if the constraint is used to record nogoods associated to a Separator
     void setSep() { isSep_ = true; }
     bool isSep() { return isSep_; }
 
-    bool isDuplicate_;
+    bool isDuplicate_; ///\brief true if it exists another binary constraint with the same scope or if it is a ternary constraint with a duplicated binary constraint inside
     void setDuplicate()
     {
         isDuplicate_ = true;

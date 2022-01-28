@@ -168,7 +168,7 @@ void TreeDecRefinement::load_decomposition()
         bool cover = false;
         if (ToulBar2::clusterFile.find(".cov") != string::npos)
             cover = true;
-        fstream file(ToulBar2::clusterFile.c_str());
+        std::fstream file(ToulBar2::clusterFile.c_str());
         set<int> nbvars;
         while (!file.eof()) {
             string cluster;
@@ -182,23 +182,22 @@ void TreeDecRefinement::load_decomposition()
                     ss >> clusterid;
                     ss >> parentid;
                 }
-                do {
+                while (ss.good()) {
                     unsigned int var;
                     ss >> var;
                     tmp.insert(var);
                     nbvars.insert(var);
                     if (var >= wcsp->numberOfVariables()) {
                         cerr << "Error: cluster decomposition contains bad variable index!" << endl;
-                        exit(EXIT_FAILURE);
+                        throw WrongFileFormat();
                     }
-                } while (ss.good());
+                };
                 m_graph[c].vars = tmp;
             }
         }
         file.close();
-        if (nbvars.size() != wcsp->numberOfVariables()) {
-            cerr << "Error: cluster decomposition has missing variables! (" << nbvars.size() << "!=" << wcsp->numberOfVariables() << ")" << endl;
-            exit(EXIT_FAILURE);
+        if (nbvars.size() < wcsp->numberOfVariables()) {
+            cout << "Warning: cluster decomposition has missing variables! (" << nbvars.size() << "!=" << wcsp->numberOfVariables() << ")" << endl;
         }
         TCDGraph::vertex_iterator v, vend, v2;
         int num = 0;
@@ -235,7 +234,7 @@ void TreeDecRefinement::load_decomposition()
         }
     } else {
         cerr << "No cluster decomposition file!" << endl;
-        exit(EXIT_FAILURE);
+        throw WrongFileFormat();
     }
 }
 

@@ -2,7 +2,7 @@
 # 
 #         How to use toulbar2/toulbar2 Docker image of github Packages
 # 
-#                    ghcr.io/nrousse/toulbar2/toulbar2:master
+#                    ghcr.io/toulbar2/toulbar2/toulbar2:master
 # 
 ###############################################################################
 
@@ -16,14 +16,8 @@
  
   - Command :
 
-    docker run -v $PWD:/WORK -ti ghcr.io/nrousse/toulbar2/toulbar2:master /bin/bash /WORK/call_toulbar2.sh
+    docker run -v $PWD:/WORK -ti ghcr.io/toulbar2/toulbar2/toulbar2:master /bin/bash /WORK/call_toulbar2.sh
  
-# Call toulbar2 to know commit sha of toulbar2 --------------------------------
-
-  - Command :
-
-    docker run -ti ghcr.io/nrousse/toulbar2/toulbar2:master cat /COMMIT_HASH_toulbar2
-
 # Call pytoulbar2 -------------------------------------------------------------
  
   - problem.py : python code using pytoulbar2
@@ -32,12 +26,7 @@
  
   - Command :
 
-    docker run -ti ghcr.io/nrousse/toulbar2/toulbar2:master /bin/bash /WORK/call_pytoulbar2.sh
+    docker run -v $PWD:/WORK -ti ghcr.io/toulbar2/toulbar2/toulbar2:master /bin/bash /WORK/call_pytoulbar2.sh
  
 ###############################################################################
-
-
-  REMARQUE : (ghcr.io/nrousse/toulbar2/toulbar2:master) :
-
-  docker run -v $PWD:/WORK -ti ghcr.io/toulbar2/toulbar2/toulbar2:master /bin/bash /WORK/commit_sha_toulbar2.sh
 

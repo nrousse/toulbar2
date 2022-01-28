@@ -60,8 +60,12 @@ void BinaryConstraint::print(ostream& os)
     os << this << " BinaryConstraint(" << x->getName() << "," << y->getName() << ")";
     if (ToulBar2::weightedDegree)
         os << "/" << getConflictWeight();
-    if (wcsp->getTreeDec())
+    if (wcsp->getTreeDec()) {
         os << "   cluster: " << getCluster();
+        if (ToulBar2::heuristicFreedom && getCluster() != -1) {
+            cout << "  freedom: " << wcsp->getTreeDec()->getCluster(getCluster())->getFreedom() << " isinTD: " << wcsp->getTreeDec()->getCluster(getCluster())->getIsCurrInTD();
+        }
+    }
     if (ToulBar2::verbose >= 8) {
         os << "supportX:[";
         for (EnumeratedVariable::iterator iterX = x->begin(); iterX != x->end(); ++iterX) {
@@ -109,8 +113,8 @@ void BinaryConstraint::dump(ostream& os, bool original)
 void BinaryConstraint::dump_CFN(ostream& os, bool original)
 {
     bool printed = false;
-    os << "\"F_" << ((original) ? (x->wcspIndex) : x->getCurrentVarId()) << "_" << ((original) ? (y->wcspIndex) : y->getCurrentVarId()) << "\":{\"scope\":[\"";
-    os << x->getName() << "\",\"" << y->getName() << "\"],";
+    os << "\"F_" << ((original) ? (x->wcspIndex) : x->getCurrentVarId()) << "_" << ((original) ? (y->wcspIndex) : y->getCurrentVarId()) << "\":{\"scope\":[";
+    os << "\"" << x->getName() << "\",\"" << y->getName() << "\"],";
     os << "\"defaultcost\":" << MIN_COST << ",\n\"costs\":[\n";
     int i = 0;
     for (EnumeratedVariable::iterator iterX = x->begin(); iterX != x->end(); ++iterX, i++) {
@@ -122,7 +126,7 @@ void BinaryConstraint::dump_CFN(ostream& os, bool original)
                 os << ((original) ? x->toIndex(*iterX) : i) << "," << ((original) ? y->toIndex(*iterY) : j) << ","
                    << ((original) ? wcsp->Cost2RDCost(getCost(*iterX, *iterY)) : wcsp->Cost2RDCost(min(wcsp->getUb(), getCost(*iterX, *iterY))));
                 printed = true;
-            } 
+            }
         }
     }
     os << "\n]},\n";

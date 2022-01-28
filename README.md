@@ -55,7 +55,10 @@ For the most recent binary or the Python API, compile from source.
 
 An alpha-release Python interface can be tested through pip on Linux and MacOS:
 
+    python3 -m pip install --upgrade pip
     python3 -m pip install pytoulbar2
+
+The first line is only useful for Linux distributions that ship "old" versions of pip.
 
 Commands for compiling the Python API on Linux/MacOS with cmake (Python module in lib/\*/pytb2.cpython\*.so):
 
@@ -85,12 +88,14 @@ Required library:
 Recommended libraries (default use):
 * libboost-graph-dev
 * libboost-iostreams-dev
+* libboost-serialization-dev
 * zlib1g-dev
 * liblzma-dev
 
 Optional libraries:
 * libxml2-dev
 * libopenmpi-dev
+* libboost-mpi-dev
 * libjemalloc-dev
 
 On MacOS, run ./misc/script/MacOS-requirements-install.sh to install the recommended libraries.
@@ -108,7 +113,7 @@ Commands for compiling toulbar2 on Linux in directory toulbar2/src without cmake
     cd src
     echo '#define Toulbar_VERSION "1.1.0"' > ToulbarVersion.hpp
     g++ -o toulbar2 -I. tb2*.cpp applis/*.cpp core/*.cpp globals/*.cpp incop/*.cpp search/*.cpp utils/*.cpp vns/*.cpp ToulbarVersion.cpp -std=c++11 -O3 -DNDEBUG \
-     -DBOOST -DLONGDOUBLE_PROB -DLONGLONG_COST -DWCSPFORMATONLY -lboost_graph -lboost_iostreams -lgmp -lz -llzma -static
+     -DBOOST -DLONGDOUBLE_PROB -DLONGLONG_COST -DWCSPFORMATONLY -lboost_graph -lboost_iostreams -lboost_serialization -lgmp -lz -llzma -static
 
 Use OPENMPI flag and MPI compiler for a parallel version of toulbar2:
 
@@ -116,7 +121,7 @@ Use OPENMPI flag and MPI compiler for a parallel version of toulbar2:
     cd src
     echo '#define Toulbar_VERSION "1.1.0"' > ToulbarVersion.hpp
     mpicxx -o toulbar2 -I. tb2*.cpp applis/*.cpp core/*.cpp globals/*.cpp incop/*.cpp search/*.cpp utils/*.cpp vns/*.cpp ToulbarVersion.cpp -std=c++11 -O3 -DNDEBUG \
-     -DBOOST -DLONGDOUBLE_PROB -DLONGLONG_COST -DOPENMPI -DWCSPFORMATONLY -lboost_graph -lboost_iostreams -lgmp -lz -llzma
+     -DBOOST -DLONGDOUBLE_PROB -DLONGLONG_COST -DOPENMPI -DWCSPFORMATONLY -lboost_graph -lboost_iostreams -lboost_serialization -lboost_mpi -lgmp -lz -llzma
 
 Replace LONGLONG_COST by INT_COST to reduce memory usage by two and reduced cost range (costs must be smaller than 10^8).
 

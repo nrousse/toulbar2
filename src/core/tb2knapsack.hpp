@@ -13,6 +13,7 @@
 class KnapsackConstraint : public AbstractNaryConstraint {
     int carity;
     Long Original_capacity;
+    Cost Original_ub;
     StoreInt nonassigned; // number of non-assigned variables during search, must be backtrackable!
     StoreLong capacity; // knapsack capacity
     StoreLong MinWeight;
@@ -38,7 +39,7 @@ class KnapsackConstraint : public AbstractNaryConstraint {
     vector<int> arrvar; // temporary data structure for propagate
     vector<vector<Cost>> Profit; // temporary data structure for propagate
     vector<Double> y_i;
-    vector<array<Double, 4>> Slopes;
+    vector<std::array<Double, 4>> Slopes;
 
     void projectLB(Cost c)
     {
@@ -198,10 +199,11 @@ class KnapsackConstraint : public AbstractNaryConstraint {
 
 public:
     KnapsackConstraint(WCSP* wcsp, EnumeratedVariable** scope_in, int arity_in, Long capacity_in,
-        vector<vector<Long>> weights_in, Long MaxWeight_in, vector<vector<int>> VarVal_in, vector<vector<int>> NotVarVal_in)
+        vector<vector<Long>> weights_in, Long MaxWeight_in, vector<vector<Value>> VarVal_in, vector<vector<Value>> NotVarVal_in)
         : AbstractNaryConstraint(wcsp, scope_in, arity_in)
         , carity(arity_in)
         , Original_capacity(capacity_in)
+        , Original_ub(wcsp->getUb())
         , nonassigned(arity_in)
         , capacity(capacity_in)
         , MinWeight(0)
@@ -332,8 +334,13 @@ public:
                 res += deltaCosts[i][distance(VarVal[i].begin(), it)];
             }
         }
-        if (W < Original_capacity || res > wcsp->getUb())
-            res = wcsp->getUb();
+        if (W < Original_capacity || res > wcsp->getUb()) {
+            if (W < Original_capacity && Original_ub < wcsp->getUb() && 1.0 * Original_ub * (Original_capacity - W) < wcsp->getUb()) {
+                res = Original_ub * (Original_capacity - W); // VNS-like methods may exploit a relaxation of the constraint
+            } else {
+                res = wcsp->getUb();
+            }
+        }
         assert(res <= wcsp->getUb());
         assert(res >= MIN_COST);
         return res;
@@ -376,7 +383,7 @@ public:
         Cost ucost = UNIT_COST;
         for (int i = 0; i < arity_; i++) {
             Cost maxcost = MIN_COST;
-            EnumeratedVariable * var = (EnumeratedVariable *)getVar(i);
+            EnumeratedVariable* var = (EnumeratedVariable*)getVar(i);
             for (auto iter = var->begin(); iter != var->end(); ++iter) {
                 if (getVar(i)->getCost(*iter) > maxcost) {
                     maxcost = getVar(i)->getCost(*iter);
@@ -455,7 +462,7 @@ public:
                 }
                 assert(TobeProjected >= MIN_COST);
                 Constraint::projectLB(TobeProjected);
-            } else if (nonassigned <= 3) {
+            } else if (nonassigned <= NARYPROJECTIONSIZE) {
                 deconnect(); // this constraint is removed from the current WCSP problem
                 projectNary();
             } else {
@@ -633,7 +640,7 @@ public:
     }
 
     //Find the optimal solution. Follow the order of the slopes and modify OptSol until we fill the constraint
-    void FindOpt(vector<array<Double, 4>> &Slopes, Long* W, Cost* c, Double* xk, int* iter)
+    void FindOpt(vector<std::array<Double, 4>>& Slopes, Long* W, Cost* c, Double* xk, int* iter)
     {
         int currentVar;
         Long capacityLeft;
@@ -659,7 +666,7 @@ public:
     }
 
     //Do the Extension/Projection
-    void ExtensionProjection(vector<Double> &y_i, Double y_cc)
+    void ExtensionProjection(vector<Double>& y_i, Double y_cc)
     {
         for (int i = 0; i < carity; i++) {
             for (int j = 0; j < nbValue[i]; ++j) {
@@ -726,7 +733,7 @@ public:
 
                     //Bound propagation, return true if a variable has been assigned
                     b = BoundConsistency();
-                    if (!b) {
+                    if (!b && ToulBar2::LcLevel == LC_EDAC) {
 #ifndef NDEBUG
                         for (int i = 0; i < carity; ++i) {
                             assert(scope[current_scope_idx[i]]->canbe(VarVal[current_scope_idx[i]].back()) || lastval0ok[current_scope_idx[i]]);
@@ -780,7 +787,7 @@ public:
                             if (W < capacity) {
                                 //Sort the Slopes
                                 sort(Slopes.begin(), Slopes.end(),
-                                    [&](array<Double, 4> &x, array<Double, 4> &y) {
+                                     [&](std::array<Double, 4>& x, std::array<Double, 4>& y) {
                                         if (x[3] == y[3]) {
                                             if (x[0] == y[0])
                                                 return weights[int(x[0])][int(x[1])] <= weights[int(y[0])][int(y[1])];
@@ -976,9 +983,9 @@ public:
             if (i < arity_ - 1)
                 os << ",";
         }
-        os << ") " << MinWeight << " <= " << capacity <<  " <= " << MaxWeight << " / " << lb << " - " << assigneddeltas << " (";
+        os << ") " << MinWeight << " <= " << capacity << " <= " << MaxWeight << " / " << lb << " - " << assigneddeltas << " (";
         for (int i = 0; i < arity_; i++) {
-            for (unsigned int j = 0; j < deltaCosts[i].size() ; j++) {
+            for (unsigned int j = 0; j < deltaCosts[i].size(); j++) {
                 os << VarVal[i][j];
                 os << ":";
                 os << weights[i][j];
@@ -986,7 +993,7 @@ public:
                 os << deltaCosts[i][j];
                 if (j < deltaCosts[i].size() - 1)
                     os << "|";
-           }
+            }
             if (i < arity_ - 1)
                 os << ",";
         }

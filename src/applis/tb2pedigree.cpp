@@ -6,6 +6,7 @@
 #include "toulbar2lib.hpp"
 #include "core/tb2enumvar.hpp"
 #include "tb2pedigree.hpp"
+using std::ifstream;
 
 void Pedigree::iniProb(WCSP* wcsp)
 {
@@ -14,7 +15,7 @@ void Pedigree::iniProb(WCSP* wcsp)
     ToulBar2::NormFactor = (-1 / Log1p(-Exp10(-(TProb)ToulBar2::resolution)));
     if (ToulBar2::NormFactor > (Pow((TProb)2., (TProb)INTEGERBITS) - 1) / (TProb)ToulBar2::resolution) {
         cerr << "This resolution cannot be ensured on the data type used to represent costs." << endl;
-        exit(EXIT_FAILURE);
+        throw BadConfiguration();
     }
 
     int nballeles = alleles.size() - 1;
@@ -73,7 +74,7 @@ void Pedigree::iniProb(WCSP* wcsp)
     }
     if (TopProb > to_double(MAX_COST)) {
         cerr << "Overflow: product of min probabilities < size of used datatype." << endl;
-        exit(EXIT_FAILURE);
+        throw BadConfiguration();
     }
     wcsp->updateUb((Cost)((Long)TopProb));
 }
@@ -177,7 +178,7 @@ void Pedigree::readPedigree(const char* fileName, WCSP* wcsp)
     ifstream file(fileName);
     if (!file) {
         cerr << "Could not open file " << fileName << endl;
-        exit(EXIT_FAILURE);
+        throw WrongFileFormat();
     }
 
     ifstream fileErrors(errorfilename.c_str());
@@ -195,13 +196,13 @@ void Pedigree::readPedigree(const char* fileName, WCSP* wcsp)
             locus = cur_locus;
         if (locus != cur_locus) {
             cerr << "Pedigree datafile contains more than one locus!" << endl;
-            exit(EXIT_FAILURE);
+            throw WrongFileFormat();
         }
 
         file >> individual;
         if (!file) {
             cerr << "Wrong data after individual " << individual << endl;
-            exit(EXIT_FAILURE);
+            throw WrongFileFormat();
         }
         assert(individual != 0);
         if (individuals.count(individual) == 0) {
@@ -214,7 +215,7 @@ void Pedigree::readPedigree(const char* fileName, WCSP* wcsp)
         file >> pedigree[individuals[individual]].father;
         if (!file) {
             cerr << "Wrong data after individual " << individual << endl;
-            exit(EXIT_FAILURE);
+            throw WrongFileFormat();
         }
         if (pedigree[individuals[individual]].father > 0 && individuals.count(pedigree[individuals[individual]].father) == 0) {
             individuals[pedigree[individuals[individual]].father] = nbindividuals;
@@ -227,7 +228,7 @@ void Pedigree::readPedigree(const char* fileName, WCSP* wcsp)
         file >> pedigree[individuals[individual]].mother;
         if (!file) {
             cerr << "Wrong data after individual " << individual << endl;
-            exit(EXIT_FAILURE);
+            throw WrongFileFormat();
         }
         if (pedigree[individuals[individual]].mother > 0 && individuals.count(pedigree[individuals[individual]].mother) == 0) {
             individuals[pedigree[individuals[individual]].mother] = nbindividuals;
@@ -250,14 +251,14 @@ void Pedigree::readPedigree(const char* fileName, WCSP* wcsp)
         file >> pedigree[individuals[individual]].sex;
         if (!file) {
             cerr << "Wrong data after individual " << individual << endl;
-            exit(EXIT_FAILURE);
+            throw WrongFileFormat();
         }
 
         int allele = 0;
         file >> allele;
         if (!file) {
             cerr << "Wrong data after individual " << individual << endl;
-            exit(EXIT_FAILURE);
+            throw WrongFileFormat();
         }
         if (allele < 0) {
             pedigree[individuals[individual]].genotype.fixed = true;
@@ -269,7 +270,7 @@ void Pedigree::readPedigree(const char* fileName, WCSP* wcsp)
         file >> allele;
         if (!file) {
             cerr << "Wrong data after individual " << individual << endl;
-            exit(EXIT_FAILURE);
+            throw WrongFileFormat();
         }
         if (allele < 0) {
             pedigree[individuals[individual]].genotype.fixed = true;
@@ -788,7 +789,7 @@ void Pedigree::printCorrectSol(WCSP* wcsp)
     if (!file) {
         cerr << "Could not write file "
              << "solution" << endl;
-        exit(EXIT_FAILURE);
+        throw WrongFileFormat();
     }
 
     for (vector<Individual>::iterator it = pedigree.begin(); it != pedigree.end(); ++it) {
@@ -822,7 +823,7 @@ void Pedigree::printSol(WCSP* wcsp)
     if (!file) {
         cerr << "Could not write file "
              << "solution" << endl;
-        exit(EXIT_FAILURE);
+        throw WrongFileFormat();
     }
 
     for (vector<Individual>::iterator it = pedigree.begin(); it != pedigree.end(); ++it) {
@@ -902,7 +903,7 @@ void Pedigree::save(const char* fileName, WCSP* wcsp, bool corrected, bool reduc
     ofstream file(fileName);
     if (!file) {
         cerr << "Could not open file " << fileName << endl;
-        exit(EXIT_FAILURE);
+        throw WrongFileFormat();
     }
 
     for (map<int, int>::iterator iter = individuals.begin(); iter != individuals.end(); ++iter) {

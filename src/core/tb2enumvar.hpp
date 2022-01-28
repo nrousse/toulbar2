@@ -44,8 +44,19 @@ public:
 
     bool isValueNames() const { return valueNames.size() == getDomainInitSize(); }
     void addValueName(const string& vname) { valueNames.push_back(vname); }
-    const string& getValueName(int index) const { static const string None = std::string(""); if (isValueNames()) return valueNames[index]; else return None; }
-    unsigned int toIndex(const string& vname) { vector<string>::iterator iter = find_if(valueNames.begin(), valueNames.end(), [&vname](const string& val){return (val==vname);}); return (unsigned int) std::distance(valueNames.begin(), iter); }
+    const string& getValueName(int index) const
+    {
+        static const string None = std::string("");
+        if (isValueNames())
+            return valueNames[index];
+        else
+            return None;
+    }
+    unsigned int toIndex(const string& vname)
+    {
+        vector<string>::iterator iter = find_if(valueNames.begin(), valueNames.end(), [&vname](const string& val) { return (val == vname); });
+        return (unsigned int)std::distance(valueNames.begin(), iter);
+    }
 
     unsigned int getDomainInitSize() const { return domain.getInitSize(); }
 #if defined(WCSPFORMATONLY) && !defined(NUMBERJACK)
@@ -137,7 +148,7 @@ public:
     bool reviseEACGreedySolution();
 
     void eliminate() FINAL;
-    bool elimVar(BinaryConstraint* xy);
+    bool elimVar(BinaryConstraint* xy, BinaryConstraint* xy_duplicate = NULL);
     bool elimVar(ConstraintLink xylink, ConstraintLink xzlink);
     bool elimVar(TernaryConstraint* xyz);
 

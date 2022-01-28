@@ -65,6 +65,7 @@ PYBIND11_MODULE(pytb2, m)
     m.attr("MIN_COST") = py::cast(MIN_COST);
 
     py::register_exception<Contradiction>(m, "Contradiction");
+    py::register_exception<InternalError>(m, "InternalError");
     py::register_exception<SolverOut>(m, "SolverOut");
 
     py::class_<ToulBar2, std::unique_ptr<ToulBar2, py::nodelete>>(m, "option")
@@ -137,6 +138,7 @@ PYBIND11_MODULE(pytb2, m)
         .def_readwrite_static("singletonConsistency", &ToulBar2::singletonConsistency)
         .def_readwrite_static("vacValueHeuristic", &ToulBar2::vacValueHeuristic)
         .def_readwrite_static("LcLevel", (int*)&ToulBar2::LcLevel)
+        .def_readwrite_static("maxEACIter", &ToulBar2::maxEACIter)
         .def_readwrite_static("wcnf", &ToulBar2::wcnf)
         .def_readwrite_static("qpbo", &ToulBar2::qpbo)
         .def_readwrite_static("qpboQuadraticCoefMultiplier", &ToulBar2::qpboQuadraticCoefMultiplier)
@@ -170,7 +172,7 @@ PYBIND11_MODULE(pytb2, m)
         .def_readwrite_static("smallSeparatorSize", &ToulBar2::smallSeparatorSize)
         .def_readwrite_static("Berge_Dec", &ToulBar2::Berge_Dec)
         .def_readwrite_static("learning", &ToulBar2::learning)
-        .def_readwrite_static("interrupted", &ToulBar2::interrupted)
+        //        .def_readwrite_static("interrupted", &ToulBar2::interrupted) // pybind11 not compatible with type atomic<bool>?
         .def_readwrite_static("seed", &ToulBar2::seed)
         .def_readwrite_static("incop_cmd", &ToulBar2::incop_cmd)
         .def_readwrite_static("searchMethod", (int*)&ToulBar2::searchMethod)
@@ -191,13 +193,15 @@ PYBIND11_MODULE(pytb2, m)
         .def_readwrite_static("vnsParallelSync", &ToulBar2::vnsParallelSync)
         .def_readwrite_static("vnsOptimumS", &ToulBar2::vnsOptimumS)
         .def_readwrite_static("vnsOptimum", &ToulBar2::vnsOptimum)
-        .def_readwrite_static("vnsParallel", &ToulBar2::vnsParallel)
+        .def_readwrite_static("parallel", &ToulBar2::parallel)
         .def_readwrite_static("hbfs", &ToulBar2::hbfs)
         .def_readwrite_static("hbfsGlobalLimit", &ToulBar2::hbfsGlobalLimit)
         .def_readwrite_static("hbfsAlpha", &ToulBar2::hbfsAlpha)
         .def_readwrite_static("hbfsBeta", &ToulBar2::hbfsBeta)
         .def_readwrite_static("hbfsCPLimit", &ToulBar2::hbfsCPLimit)
         .def_readwrite_static("hbfsOpenNodeLimit", &ToulBar2::hbfsOpenNodeLimit)
+        .def_readwrite_static("eps", &ToulBar2::eps)
+        .def_readwrite_static("epsFilename", &ToulBar2::epsFilename)
         .def_readwrite_static("verifyOpt", &ToulBar2::verifyOpt)
         .def_readwrite_static("verifiedOptimum", &ToulBar2::verifiedOptimum);
     m.def("check", &tb2checkOptions); // should be called after setting the options (and before reading a problem)
@@ -308,15 +312,13 @@ PYBIND11_MODULE(pytb2, m)
                 return s.postUnaryConstraint(xIndex, costs, incremental);
             },
             py::arg("xIndex"), py::arg("costs"), py::arg("incremental") = false)
-        .def(
-            "postBinaryConstraint", [](WeightedCSP& s, int xIndex, int yIndex, vector<Double>& costs, bool incremental) {
-                return s.postBinaryConstraint(xIndex, yIndex, costs, incremental);
-            },
+        .def("postBinaryConstraint", [](WeightedCSP& s, int xIndex, int yIndex, vector<Double>& costs, bool incremental) {
+            return s.postBinaryConstraint(xIndex, yIndex, costs, incremental);
+        },
             py::arg("xIndex"), py::arg("yIndex"), py::arg("costs"), py::arg("incremental") = false)
-        .def(
-            "postTernaryConstraint", [](WeightedCSP& s, int xIndex, int yIndex, int zIndex, vector<Double>& costs, bool incremental) {
-                return s.postTernaryConstraint(xIndex, yIndex, zIndex, costs, incremental);
-            },
+        .def("postTernaryConstraint", [](WeightedCSP& s, int xIndex, int yIndex, int zIndex, vector<Double>& costs, bool incremental) {
+            return s.postTernaryConstraint(xIndex, yIndex, zIndex, costs, incremental);
+        },
             py::arg("xIndex"), py::arg("yIndex"), py::arg("zIndex"), py::arg("costs"), py::arg("incremental") = false)
         .def("postNaryConstraintBegin", (int (WeightedCSP::*)(vector<int> & scope, Cost defval, Long nbtuples, bool forcenary)) & WeightedCSP::postNaryConstraintBegin)
         .def("postNaryConstraintTuple", (void (WeightedCSP::*)(int ctrindex, vector<Value>& tuple, Cost cost)) & WeightedCSP::postNaryConstraintTuple)
@@ -325,9 +327,10 @@ PYBIND11_MODULE(pytb2, m)
         .def("postDisjunction", &WeightedCSP::postDisjunction)
         .def("postSpecialDisjunction", &WeightedCSP::postSpecialDisjunction)
         .def("postCliqueConstraint", (int (WeightedCSP::*)(vector<int> & scope, const string& arguments)) & WeightedCSP::postCliqueConstraint)
-        .def("postKnapsackConstraint", [](WeightedCSP& s, vector<int> & scope, const string& arguments, bool isclique, bool kp) {
+        .def("postKnapsackConstraint", [](WeightedCSP& s, vector<int>& scope, const string& arguments, bool isclique, bool kp) {
             return s.postKnapsackConstraint(scope, arguments, isclique, kp);
-        }, py::arg("scope"), py::arg("arguments"), py::arg("isclique") = false, py::arg("kp") = false)
+        },
+            py::arg("scope"), py::arg("arguments"), py::arg("isclique") = false, py::arg("kp") = false)
         .def("postWAmong", (int (WeightedCSP::*)(vector<int> & scope, const string& semantics, const string& propagator, Cost baseCost, const vector<Value>& values, int lb, int ub)) & WeightedCSP::postWAmong)
         .def("postWVarAmong", (void (WeightedCSP::*)(vector<int> & scope, const string& semantics, Cost baseCost, vector<Value>& values, int varIndex)) & WeightedCSP::postWVarAmong)
         .def("postWRegular", (int (WeightedCSP::*)(vector<int> & scope, const string& semantics, const string& propagator, Cost baseCost, int nbStates, const vector<WeightedObjInt>& initial_States, const vector<WeightedObjInt>& accepting_States, const vector<DFATransition>& Wtransitions)) & WeightedCSP::postWRegular)
@@ -341,7 +344,7 @@ PYBIND11_MODULE(pytb2, m)
         //        .def("postWSum", &WeightedCSP::postWSum)
         //        .def("postWVarSum", &WeightedCSP::postWVarSum)
         //        .def("postWOverlap", &WeightedCSP::postWOverlap)
-        .def("postWDivConstraint", & WeightedCSP::postWDivConstraint)
+        .def("postWDivConstraint", &WeightedCSP::postWDivConstraint)
         .def("isGlobal", &WeightedCSP::isGlobal)
         .def("getSolution", (const vector<Value> (WeightedCSP::*)()) & WeightedCSP::getSolution)
         .def("initSolutionCost", &WeightedCSP::initSolutionCost)
@@ -415,13 +418,11 @@ PYBIND11_MODULE(pytb2, m)
 #ifndef __WIN32__
         .def("timer", [](WeightedCSPSolver& s, int timeout) {
             signal(SIGINT, timeOut);
-            signal(SIGTERM, timeOut);
             if (timeout > 0)
                 timer(timeout);
         })
 #endif
-        .def(
-            "solve", [](WeightedCSPSolver& s, bool first) {
+        .def("solve", [](WeightedCSPSolver& s, bool first) {
             bool res = false;
             try {
                 res = s.solve(first);

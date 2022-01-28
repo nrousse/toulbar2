@@ -19,7 +19,7 @@
 #include "tb2globaldecomposable.hpp"
 #include "globals/tb2globalconstr.hpp"
 #ifdef ILOGCPLEX
-#include "global/tb2lpsconstr.hpp"
+#include "globals/tb2lpsconstr.hpp"
 #endif
 #include "globals/tb2flowbasedconstr.hpp"
 #include "globals/tb2alldiffconstr.hpp"
@@ -35,6 +35,11 @@
 #include "tb2clqcover.hpp"
 #include "tb2knapsack.hpp"
 
+using std::ifstream;
+using std::istringstream;
+using std::greater;
+using std::fixed;
+using std::setprecision;
 /*
  * Global variables with their default value
  *
@@ -98,6 +103,7 @@ int ToulBar2::preprocessFunctional;
 bool ToulBar2::costfuncSeparate;
 int ToulBar2::preprocessNary;
 LcLevelType ToulBar2::LcLevel;
+int ToulBar2::maxEACIter;
 bool ToulBar2::QueueComplexity;
 bool ToulBar2::binaryBranching;
 bool ToulBar2::lastConflict;
@@ -194,6 +200,8 @@ char* ToulBar2::varOrder;
 int ToulBar2::btdMode;
 int ToulBar2::btdSubTree;
 int ToulBar2::btdRootCluster;
+int ToulBar2::rootHeuristic;
+bool ToulBar2::reduceHeight;
 
 double ToulBar2::startCpuTime;
 
@@ -204,6 +212,9 @@ int ToulBar2::minProperVarSize;
 
 int ToulBar2::smallSeparatorSize;
 
+bool ToulBar2::heuristicFreedom;
+int ToulBar2::heuristicFreedomLimit;
+
 bool ToulBar2::isZ;
 TLogProb ToulBar2::logZ;
 TLogProb ToulBar2::logU;
@@ -211,7 +222,7 @@ TLogProb ToulBar2::logepsilon;
 bool ToulBar2::Berge_Dec; // berge decomposition flag  > 0 if wregular found in the problem
 
 externalfunc ToulBar2::timeOut;
-bool ToulBar2::interrupted;
+std::atomic<bool> ToulBar2::interrupted;
 
 bool ToulBar2::learning;
 
@@ -241,7 +252,7 @@ bool ToulBar2::vnsParallelLimit;
 bool ToulBar2::vnsParallelSync;
 string ToulBar2::vnsOptimumS;
 Cost ToulBar2::vnsOptimum;
-bool ToulBar2::vnsParallel;
+bool ToulBar2::parallel;
 
 Long ToulBar2::hbfs;
 Long ToulBar2::hbfsGlobalLimit;
@@ -249,6 +260,8 @@ Long ToulBar2::hbfsAlpha; // inverse of minimum node redundancy goal limit
 Long ToulBar2::hbfsBeta; // inverse of maximum node redundancy goal limit
 ptrdiff_t ToulBar2::hbfsCPLimit; // limit on the number of choice points stored inside open node list
 ptrdiff_t ToulBar2::hbfsOpenNodeLimit; // limit on the number of open nodes
+Long ToulBar2::eps;
+string ToulBar2::epsFilename;
 
 bool ToulBar2::verifyOpt;
 Cost ToulBar2::verifiedOptimum;
@@ -299,6 +312,7 @@ void tb2init()
     ToulBar2::costfuncSeparate = true;
     ToulBar2::preprocessNary = 10;
     ToulBar2::LcLevel = LC_EDAC;
+    ToulBar2::maxEACIter = MAX_EAC_ITER;
     ToulBar2::QueueComplexity = false;
     ToulBar2::binaryBranching = true;
     ToulBar2::lastConflict = true;
@@ -387,6 +401,8 @@ void tb2init()
     ToulBar2::btdMode = 0;
     ToulBar2::btdSubTree = -1;
     ToulBar2::btdRootCluster = -1;
+    ToulBar2::rootHeuristic = 0;
+    ToulBar2::reduceHeight = false;
 
     ToulBar2::startCpuTime = 0;
 
@@ -396,6 +412,9 @@ void tb2init()
     ToulBar2::minProperVarSize = 0;
 
     ToulBar2::smallSeparatorSize = 4;
+
+    ToulBar2::heuristicFreedom = false;
+    ToulBar2::heuristicFreedomLimit = 5;
 
     ToulBar2::isZ = false;
     ToulBar2::logZ = -numeric_limits<TLogProb>::infinity();
@@ -434,14 +453,16 @@ void tb2init()
     ToulBar2::vnsParallelSync = false;
     ToulBar2::vnsOptimumS = "";
     ToulBar2::vnsOptimum = MIN_COST;
-    ToulBar2::vnsParallel = false;
+    ToulBar2::parallel = false;
 
     ToulBar2::hbfs = 1;
-    ToulBar2::hbfsGlobalLimit = 10000;
+    ToulBar2::hbfsGlobalLimit = 16384;
     ToulBar2::hbfsAlpha = 20LL; // i.e., alpha = 1/20 = 0.05
     ToulBar2::hbfsBeta = 10LL; // i.e., beta = 1/10 = 0.1
     ToulBar2::hbfsCPLimit = CHOICE_POINT_LIMIT;
     ToulBar2::hbfsOpenNodeLimit = OPEN_NODE_LIMIT;
+    ToulBar2::eps = 0;
+    ToulBar2::epsFilename = "subproblems.txt";
 
     ToulBar2::verifyOpt = false;
     ToulBar2::verifiedOptimum = MAX_COST;
@@ -452,7 +473,7 @@ void tb2checkOptions()
 {
     if (ToulBar2::divBound >= 1 && ToulBar2::divNbSol == 0) {
         cerr << "Error: ask for zero diverse solutions!" << endl;
-        exit(1);
+        throw BadConfiguration();
     }
     if (ToulBar2::divNbSol >= 1 && ToulBar2::allSolutions > 0) {
         if (ToulBar2::verbose >= 0 && ToulBar2::allSolutions > ToulBar2::divNbSol)
@@ -462,50 +483,61 @@ void tb2checkOptions()
     }
     if (ToulBar2::costMultiplier != UNIT_COST && (ToulBar2::uai || ToulBar2::qpbo || ToulBar2::opb)) {
         cerr << "Error: cost multiplier cannot be used with UAI, PBO, and QPBO formats. Use option -precision instead." << endl;
-        exit(1);
+        throw BadConfiguration();
     }
     if (ToulBar2::costMultiplier != UNIT_COST && (ToulBar2::haplotype || ToulBar2::pedigree || ToulBar2::bep || ToulBar2::xmlflag)) {
         cerr << "Error: cost multiplier not implemented for this file format." << endl;
-        exit(1);
+        throw BadConfiguration();
+    }
+    if (ToulBar2::heuristicFreedom && ToulBar2::btdMode == 0) {
+        ToulBar2::btdMode = 1;
+    }
+    if (ToulBar2::heuristicFreedom && ToulBar2::btdMode >= 2) {
+        cout << "Warning! adaptive BTD not compatible with RDS-like search methods." << endl;
+        ToulBar2::heuristicFreedom = false;
     }
     if (ToulBar2::searchMethod != DFBB && ToulBar2::btdMode >= 1) {
         cerr << "Error: BTD-like search methods are compatible with VNS. Deactivate either '-B' or '-vns'" << endl;
-        exit(1);
+        throw BadConfiguration();
     }
     if (ToulBar2::searchMethod != DFBB && ToulBar2::restart < 1) {
         ToulBar2::restart = 1; // Force random variable selection during (LDS) search within variable neighborhood search methods
     }
     if ((ToulBar2::allSolutions || ToulBar2::isZ) && ToulBar2::searchMethod != DFBB) {
         cerr << "Error: cannot find all solutions or compute a partition function with VNS. Deactivate either option." << endl;
-        exit(1);
+        throw BadConfiguration();
+    }
+    if ((ToulBar2::allSolutions || ToulBar2::isZ) && ToulBar2::parallel) {
+        cerr << "Error: cannot find all solutions or compute a partition function with parallel HBFS. Deactivate either option." << endl;
+        throw BadConfiguration();
     }
     if (ToulBar2::divNbSol > 1 && ToulBar2::searchMethod != DFBB) {
         cerr << "Error: cannot find diverse solutions with VNS. Deactivate either option." << endl;
-        exit(1);
+        throw BadConfiguration();
     }
     if (ToulBar2::approximateCountingBTD && ToulBar2::searchMethod != DFBB) {
         cerr << "Error: cannot compute an approximate solution count with VNS. Deactivate '-vns' for counting." << endl;
-        exit(1);
+        throw BadConfiguration();
     }
     if (ToulBar2::searchMethod == RPDGVNS && !ToulBar2::vnsParallelSync && ToulBar2::vnsKinc == VNS_LUBY) {
         cerr << "Error: Luby operator not implemented for neighborhood growth strategy in asynchronous parallel VNS-like methods, use Add1 instead." << endl;
-        exit(1);
+        throw BadConfiguration();
     }
     if (ToulBar2::searchMethod == RPDGVNS && !ToulBar2::vnsParallelSync && ToulBar2::vnsLDSinc == VNS_LUBY) {
         cerr << "Error: Luby operator not implemented for  discrepancy growth strategy in asynchronous parallel VNS-like methods, use Add1 instead." << endl;
-        exit(1);
+        throw BadConfiguration();
     }
     if (ToulBar2::approximateCountingBTD && ToulBar2::btdMode != 1) {
         cerr << "Error: BTD search mode required for approximate solution counting (use '-B=1')." << endl;
-        exit(1);
+        throw BadConfiguration();
     }
     if (ToulBar2::allSolutions && ToulBar2::btdMode > 1) {
         cerr << "Error: RDS-like method cannot currently enumerate solutions. Use DFS/HBFS search or BTD (feasibility only)." << endl;
-        exit(1);
+        throw BadConfiguration();
     }
     if (ToulBar2::divNbSol > 1 && ToulBar2::btdMode >= 1) {
         cerr << "Error: BTD-like methods cannot currently find diverse solutions. Use DFS/HBFS search." << endl;
-        exit(1);
+        throw BadConfiguration();
     }
     if (ToulBar2::allSolutions && ToulBar2::btdMode == 1 && ToulBar2::elimDegree > 0) {
         //    if (!ToulBar2::uai || ToulBar2::debug) cout << "Warning! Cannot count all solutions with variable elimination during search (except with degree 0 for #BTD)" << endl;
@@ -525,7 +557,7 @@ void tb2checkOptions()
     }
     if (ToulBar2::lds && ToulBar2::btdMode >= 1) {
         cerr << "Error: Limited Discrepancy Search not compatible with BTD-like search methods." << endl;
-        exit(1);
+        throw BadConfiguration();
     }
     if (ToulBar2::lds && ToulBar2::hbfs) {
         // cout << "Warning! Hybrid best-first search not compatible with Limited Discrepancy Search." << endl;
@@ -541,54 +573,60 @@ void tb2checkOptions()
     }
     if (ToulBar2::restart >= 0 && ToulBar2::btdMode >= 1) {
         cerr << "Error: Randomized search with restart not compatible with BTD-like search methods." << endl;
-        exit(1);
+        throw BadConfiguration();
     }
     if (!ToulBar2::binaryBranching && ToulBar2::btdMode >= 1) {
         cout << "Warning! N-ary branching not implemented with BTD-like search methods (remove -b: or -B option)." << endl;
-        exit(1);
+        throw BadConfiguration();
     }
     if (ToulBar2::btdSubTree >= 0 && ToulBar2::btdMode <= 1) {
         cerr << "Error: cannot restrict solving to a problem rooted at a subtree, use RDS (-B=2)." << endl;
-        exit(1);
+        throw BadConfiguration();
     }
+#ifdef NO_STORE_BINARY_COSTS
+    if (abs(ToulBar2::vac) > 1) {
+        cerr << "Error: VAC during search not possible if compiled with BINARYWCSP option." << endl;
+        throw BadConfiguration();
+    }
+#endif
     if (abs(ToulBar2::vac) > 1 && ToulBar2::btdMode >= 1) { /// \warning VAC supports can break EAC supports (e.g. SPOT5 404.wcsp)
         cerr << "Error: VAC during search not implemented with BTD-like search methods (use -A only or unset -B)." << endl;
-        exit(1);
+        throw BadConfiguration();
     }
     if (ToulBar2::FullEAC && ToulBar2::btdMode >= 1) {
         cerr << "Error: VAC-based variable ordering heuristic not implemented with BTD-like search methods (remove -vacint option)." << endl;
-        exit(1);
+        throw BadConfiguration();
     }
     if (ToulBar2::FullEAC && ToulBar2::LcLevel != LC_EDAC && !ToulBar2::vac) { /// \warning VAC-integral assumes EAC supports
         cerr << "Error: VAC-based variable ordering heuristic requires either EDAC local consistency or VAC (select EDAC using -k option or VAC using -A)." << endl;
-        exit(1);
+        throw BadConfiguration();
     }
     if (ToulBar2::useRASPS && ToulBar2::btdMode >= 1) {
         cerr << "Error: VAC-based upper bound probing heuristic not implemented with BTD-like search methods (remove -rasps option)." << endl;
-        exit(1);
+        throw BadConfiguration();
     }
     if (ToulBar2::useRASPS && !ToulBar2::vac) {
         cerr << "Error: VAC-based upper bound probing heuristic requires VAC at least in preprocessing (add -A option)." << endl;
-        exit(1);
+        throw BadConfiguration();
     }
     if (ToulBar2::useRASPS && ToulBar2::divNbSol > 1) {
         cerr << "Error: VAC-based upper bound probing heuristic is not compatible with diverse solutions (remove -rasps option)." << endl;
-        exit(1);
+        throw BadConfiguration();
     }
     if (ToulBar2::VACthreshold && !ToulBar2::vac) {
         cerr << "Error: VAC threshold heuristic requires VAC during search (add -A option)." << endl;
-        exit(1);
+        throw BadConfiguration();
     }
     if (ToulBar2::vac && (ToulBar2::LcLevel == LC_NC || ToulBar2::LcLevel == LC_DAC)) { /// \warning VAC assumes AC supports
         cerr << "Error: VAC requires at least AC local consistency (select AC, FDAC, or EDAC using -k option)." << endl;
-        exit(1);
+        throw BadConfiguration();
     }
     if (ToulBar2::vac && ToulBar2::FullEAC && !ToulBar2::vacValueHeuristic) { /// \warning VAC must update EAC supports in order to make new FullEAC supports based on VAC-integrality
         ToulBar2::vacValueHeuristic = true;
     }
     if (ToulBar2::preprocessFunctional > 0 && (ToulBar2::LcLevel == LC_NC || ToulBar2::LcLevel == LC_DAC)) {
         cerr << "Error: functional elimination requires at least AC local consistency (select AC, FDAC, or EDAC using -k option)." << endl;
-        exit(1);
+        throw BadConfiguration();
     }
     if (ToulBar2::learning && ToulBar2::elimDegree >= 0) {
         cout << "Warning! Cannot perform variable elimination during search with pseudo-boolean learning." << endl;
@@ -596,15 +634,23 @@ void tb2checkOptions()
     }
     if (ToulBar2::incop_cmd.size() > 0 && (ToulBar2::allSolutions || ToulBar2::isZ)) {
         cout << "Error: Cannot use INCOP local search for (weighted) counting (remove -i option)." << endl;
-        exit(1);
+        throw BadConfiguration();
     }
     if (!ToulBar2::binaryBranching && ToulBar2::hbfs) {
         cout << "Error: hybrid best-first search restricted to binary branching (remove -b: or add -hbfs: options)." << endl;
-        exit(1);
+        throw BadConfiguration();
     }
     if (ToulBar2::dichotomicBranching >= 2 && ToulBar2::hbfs) {
         cout << "Error: general dichotomic branching not implemented with hybrid best-first search (use simple dichotomic branching or add -hbfs: parameter)." << endl;
-        exit(1);
+        throw BadConfiguration();
+    }
+    if (ToulBar2::hbfsAlpha < ToulBar2::hbfsBeta && ToulBar2::hbfs) {
+        cout << "Error: hybrid best-first search compromise min alpha threshold should be less than or equal to max beta threshold (change threshold using -hbfsmin and -hbfsmax parameters)." << endl;
+        throw BadConfiguration();
+    }
+    if (ToulBar2::eps && !ToulBar2::hbfs) {
+        cout << "Error: embarrassingly parallel search works only with hybrid best-first search (use -eps with -hbfs)." << endl;
+        throw BadConfiguration();
     }
     if (ToulBar2::verifyOpt && (ToulBar2::elimDegree >= 0 || ToulBar2::elimDegree_preprocessing >= 0)) {
         cout << "Warning! Cannot perform variable elimination while verifying that the optimal solution is preserved." << endl;
@@ -618,6 +664,10 @@ void tb2checkOptions()
     if (ToulBar2::verifyOpt && ToulBar2::DEE >= 1) {
         cout << "Warning! Cannot perform dead-end elimination while verifying that the optimal solution is preserved." << endl;
         ToulBar2::DEE = 0;
+    }
+    if (ToulBar2::heuristicFreedom && !ToulBar2::hbfs) {
+        cout << "Warning! adaptive BTD requires HBFS (remove -hbfs: option)." << endl;
+        ToulBar2::heuristicFreedom = false;
     }
 }
 
@@ -668,7 +718,7 @@ WCSP::~WCSP()
         for (unsigned int i = 0; i < vars.size(); i++)
             delete vars[i];
     if (constrs.size())
-        for (unsigned int i = 0; i < constrs.size() - 1; i++)
+        for (unsigned int i = 0; i < constrs.size() - ((nbNodes==0&&solutionCost==MAX_COST)?1:0); i++)
             delete constrs[i]; // Warning! The last constraint may be badly allocated due to an exception occuring in its constructor (because of propagate) // If there is no constraint then (constrs.size()-1) overflow!
     if (elimBinConstrs.size())
         for (unsigned int i = 0; i < elimBinConstrs.size(); i++)
@@ -1054,15 +1104,19 @@ int WCSP::postIncrementalBinaryConstraint(int xIndex, int yIndex, vector<Cost>& 
             xynew->setcost(*iterx, *itery, costs[x->toIndex(*iterx) * y->getDomainInitSize() + y->toIndex(*itery)]);
         }
     }
+#ifndef NO_STORE_BINARY_COSTS
     if (xy) {
         xy->addCosts(xynew);
         assert(xynew->deconnected());
         if (x->unassigned() && y->unassigned())
             xy->reconnect();
     } else {
+#endif
         xy = xynew;
         xy->reconnect();
+#ifndef NO_STORE_BINARY_COSTS
     }
+#endif
     xy->propagate();
     return xy->wcspIndex;
 }
@@ -1096,16 +1150,20 @@ int WCSP::postIncrementalTernaryConstraint(int xIndex, int yIndex, int zIndex, v
         }
     }
 
+#ifndef NO_STORE_TERNARY_COSTS
     TernaryConstraint* ctr = x->getConstr(y, z);
     if (!ctr) {
+#endif
         xyz->fillElimConstrBinaries();
         xyz->reconnect();
+#ifndef NO_STORE_TERNARY_COSTS
     } else {
         ctr->addCosts(xyz);
         assert(ctr->connected());
         assert(xyz->deconnected());
         xyz = ctr;
     }
+#endif
     xyz->propagate();
     return xyz->wcspIndex;
 }
@@ -1288,7 +1346,7 @@ void WCSP::addHDivConstraint(vector<Variable*>& divVars, unsigned int distance, 
         } else {
             hId = divHVarsIdMap[xId]; //index of variable h
             h = (EnumeratedVariable*)getVar(hId);
-            assign(hId, h->getInf());  // h variable is unused and cannot be determined before sorting divVariables
+            assign(hId, h->getInf()); // h variable is unused and cannot be determined before sorting divVariables
         }
         hp = h;
         hpId = hId;
@@ -1784,10 +1842,10 @@ void WCSP::postWDivConstraint(vector<int>& scopeIndex, unsigned int distance, ve
             assert(scopeIndex[i] != scopeIndex[j]);
 #endif
     assert(scopeIndex.size() == values.size());
-    if (method==3) {
+    if (method == 3) {
         string parameters;
-        parameters.append(to_string(-((int)scopeIndex.size()-(int)distance)));
-        for (unsigned int i=0; i<scopeIndex.size(); i++) {
+        parameters.append(to_string(-((int)scopeIndex.size() - (int)distance)));
+        for (unsigned int i = 0; i < scopeIndex.size(); i++) {
             parameters.append(" 1 ");
             parameters.append(to_string(values[i]));
             parameters.append(" -1");
@@ -1799,7 +1857,7 @@ void WCSP::postWDivConstraint(vector<int>& scopeIndex, unsigned int distance, ve
     decomposableGCF->setSemantics("hard");
     decomposableGCF->setBaseCost(getUb());
     decomposableGCF->setDistance(distance);
-    for (Value v: values) {
+    for (Value v : values) {
         decomposableGCF->addValue(v);
     }
     decomposableGCF->setMethod(method);
@@ -1887,7 +1945,7 @@ GlobalConstraint* WCSP::postGlobalCostFunction(int* scopeIndex, int arity, const
         gc = new MaxConstraint(this, scopeVars, arity);
     } else {
         cout << gcname << " undefined" << endl;
-        exit(1);
+        throw WrongFileFormat();
     }
 
     if (gc != NULL)
@@ -1904,7 +1962,7 @@ int WCSP::postCliqueConstraint(int* scopeIndex, int arity, istream& file)
             assert(scopeIndex[i] != scopeIndex[j]);
 #endif
 #ifdef CLIQUE2KNAPSACK
-    return postKnapsackConstraint(scopeIndex,arity,file,true,true);
+    return postKnapsackConstraint(scopeIndex, arity, file, true, true);
 #else
     vector<EnumeratedVariable*> scopeVars(arity);
     for (int i = 0; i < arity; i++)
@@ -1942,23 +2000,23 @@ int WCSP::postKnapsackConstraint(int* scopeIndex, int arity, istream& file, bool
     vector<Long> TempWeights;
     vector<vector<Long>> weights;
     Long readw;
-    int readv1;
+    Value readv1;
     Long capacity;
-    Long MaxWeight=0;
+    Long MaxWeight = 0;
     int skip;
     unsigned int size;
     int readnbval;
     Long minweight;
-    vector<int> TempVarVal,TempNotVarVal;
-    vector<vector<int>> VarVal,NotVarVal;
+    vector<Value> TempVarVal, TempNotVarVal;
+    vector<vector<Value>> VarVal, NotVarVal;
     vector<tValue> clausetuple(arity, 0);
-    bool isclause=0;
+    bool isclause = 0;
     vector<EnumeratedVariable*> scopeVars(arity);
-    int ar=arity;
+    int ar = arity;
     if (!isclique) {
         file >> capacity;
     } else {
-        capacity=-1;
+        capacity = -1;
         file >> skip;
     }
     for (int i = 0; i < ar; i++)
@@ -1985,7 +2043,7 @@ int WCSP::postKnapsackConstraint(int* scopeIndex, int arity, istream& file, bool
             minweight = 0;
             for (int j = 0; j < readnbval; ++j) {
                 file >> readv1;
-                if(scopeVars[i]->canbe(readv1)){
+                if (scopeVars[i]->canbe(readv1)) {
                     if (!isclique) {
                         file >> readw;
                         if (readw != 0) {
@@ -1995,19 +2053,20 @@ int WCSP::postKnapsackConstraint(int* scopeIndex, int arity, istream& file, bool
                             TempWeights.push_back(readw);
                         }
                     } else {
-                        minweight=-1;
+                        minweight = -1;
                         TempVarVal.push_back(readv1);
                         TempWeights.push_back(-1);
                     }
                 } else {
-                    if (!isclique) file>>skip;
+                    if (!isclique)
+                        file >> skip;
                 }
             }
         }
         size = scopeVars[i]->getDomainSize();
         if (size != TempVarVal.size()) {
             TempWeights.push_back(0);
-            Value *VV = new Value[size];
+            Value* VV = new Value[size];
             scopeVars[i]->getDomain(VV);
             for (unsigned int j = 0; j < size; j++) {
                 if (find(TempVarVal.begin(), TempVarVal.end(), VV[j]) == TempVarVal.end())
@@ -2026,7 +2085,7 @@ int WCSP::postKnapsackConstraint(int* scopeIndex, int arity, istream& file, bool
         }
         if (TempWeights.size() > 1) {
             MaxWeight += *max_element(TempWeights.begin(), TempWeights.end());
-            assert(*max_element(TempWeights.begin(), TempWeights.end())>0);
+            assert(*max_element(TempWeights.begin(), TempWeights.end()) > 0);
             weights.push_back(TempWeights);
             VarVal.push_back(TempVarVal);
             NotVarVal.push_back(TempNotVarVal);
@@ -2034,12 +2093,12 @@ int WCSP::postKnapsackConstraint(int* scopeIndex, int arity, istream& file, bool
             tobedel.push_back(i);
         }
     }
-    sort(tobedel.begin(),tobedel.end(),greater<int>());
+    sort(tobedel.begin(), tobedel.end(), greater<int>());
     for (unsigned int i = 0; i < tobedel.size(); ++i) {
         scopeVars.erase(scopeVars.begin() + tobedel[i]);
         arity--;
     }
-    if(capacity>0) {
+    if (capacity > 0) {
         for (unsigned int i = 0; i < weights.size(); ++i) {
             for (unsigned int j = 0; j < weights[i].size(); ++j) {
                 if (weights[i][j] > capacity) {
@@ -2053,9 +2112,10 @@ int WCSP::postKnapsackConstraint(int* scopeIndex, int arity, istream& file, bool
     AbstractNaryConstraint* cc = NULL;
     if (isclause) {
         assert(arity == (int)clausetuple.size());
-        if (ToulBar2::verbose >= 3) cout << "Knapsack constraint of arity " << arity << " transformed into clause!" << endl;
+        if (ToulBar2::verbose >= 3)
+            cout << "Knapsack constraint of arity " << arity << " transformed into clause!" << endl;
         cc = new WeightedClause(this, scopeVars.data(), arity, getUb(), clausetuple);
-    } else{
+    } else {
         cc = new KnapsackConstraint(this, scopeVars.data(), arity, capacity, weights, MaxWeight, VarVal, NotVarVal);
     }
     if (isDelayedNaryCtr)
@@ -2497,7 +2557,7 @@ int WCSP::postSupxyc(int xIndex, int yIndex, Value cst, Value delta)
         return postBinaryConstraint(xIndex, yIndex, costs);
     } else {
         cerr << "Cannot mix variables with interval and enumerated domains!!!" << endl;
-        exit(EXIT_FAILURE);
+        throw InternalError();
     }
 }
 
@@ -2520,7 +2580,7 @@ int WCSP::postDisjunction(int xIndex, int yIndex, Value cstx, Value csty, Cost p
         return postBinaryConstraint(xIndex, yIndex, costs);
     } else {
         cerr << "Cannot mix variables with interval and enumerated domains!!!" << endl;
-        exit(EXIT_FAILURE);
+        throw InternalError();
     }
 }
 
@@ -2543,7 +2603,7 @@ int WCSP::postSpecialDisjunction(int xIndex, int yIndex, Value cstx, Value csty,
         return postBinaryConstraint(xIndex, yIndex, costs);
     } else {
         cerr << "Cannot mix variables with interval and enumerated domains!!!" << endl;
-        exit(EXIT_FAILURE);
+        throw InternalError();
     }
 }
 
@@ -2564,7 +2624,7 @@ void WCSP::sortConstraints()
     if (abs(ToulBar2::constrOrdering) == CONSTR_ORDER_RANDOM) {
         shuffle(delayedNaryCtr.begin(), delayedNaryCtr.end(), myrandom_generator);
     } else {
-        stable_sort(delayedNaryCtr.begin(), delayedNaryCtr.end(), [&](int idx1, int idx2){ return Constraint::cmpConstraint(getCtr(idx1), getCtr(idx2)); });
+        stable_sort(delayedNaryCtr.begin(), delayedNaryCtr.end(), [&](int idx1, int idx2) { return Constraint::cmpConstraint(getCtr(idx1), getCtr(idx2)); });
     }
     for (vector<int>::iterator idctr = delayedNaryCtr.begin(); idctr != delayedNaryCtr.end(); ++idctr) {
         getCtr(*idctr)->propagate();
@@ -2607,6 +2667,7 @@ void WCSP::sortConstraints()
         setDACOrder(order);
     }
     for (unsigned int i = 0; i < vars.size(); i++) {
+        resetWeightedDegree(i); // side-effect: (lazy) recompute tightness
         vars[i]->sortConstraints();
     }
     AC.sort(false); // sort in decreasing order to get the smallest DAC index first when doing pop() on this queue
@@ -3303,12 +3364,12 @@ void WCSP::dump(ostream& os, bool original)
     strcpy(Pb_graph, Pb_basename);
     strcpy(Pb_degree, Pb_basename);
 
-    if (getLb() > MIN_COST)
+    if (getLb() > MIN_COST || getNegativeLb() != MIN_COST)
         xcosts++;
     for (unsigned int i = 0; i < vars.size(); i++) {
         if (original && vars[i]->getInf() < 0) {
             cerr << "Cannot save domain of variable " << vars[i]->getName() << " with negative values!!!" << endl;
-            exit(EXIT_FAILURE);
+            throw InternalError();
         }
         if (original) {
             int domsize = (vars[i]->enumerated() ? ((EnumeratedVariable*)vars[i])->toValue(((EnumeratedVariable*)vars[i])->getDomainInitSize()) : (vars[i]->getSup() + 1));
@@ -3323,7 +3384,7 @@ void WCSP::dump(ostream& os, bool original)
             xcosts++;
         //          else if (vars[i]->getInfCost() > MIN_COST || vars[i]->getSupCost() > MIN_COST) {
         //              cerr << "Cannot save interval variable " << vars[i]->getName() << " with bound unary costs!!!" << endl;
-        //              exit(EXIT_FAILURE);
+        //              throw InternalError();
         //          }
     }
     os << "wcsp " << ((original) ? numberOfVariables() : numberOfUnassignedVariables()) << " "
@@ -3370,8 +3431,12 @@ void WCSP::dump(ostream& os, bool original)
             }
         }
     }
-    if (getLb() > MIN_COST)
-        os << "0 " << getLb() << " 0" << endl;
+    if (getLb() > MIN_COST || getNegativeLb() != MIN_COST) {
+        if (getLb() < getNegativeLb()) {
+            cerr << "Warning! Negative problem lower bound cannot be represented in wcp format! (fixed to zero)" << endl;
+        }
+        os << "0 " << max(MIN_COST, getLb() - getNegativeLb()) << " 0" << endl;
+    }
 
     if (!ToulBar2::uaieval && ToulBar2::verbose >= 0) {
         //####################" dump dot file ###############################""
@@ -3468,7 +3533,7 @@ void WCSP::dump_CFN(ostream& os, bool original)
     for (unsigned int i = 0; i < vars.size(); i++) {
         if (vars[i]->getInf() < 0 || !vars[i]->enumerated()) {
             cerr << "Cannot save domain of variable " << vars[i]->getName() << " (negative values or not enumerated)" << endl;
-            exit(EXIT_FAILURE);
+            throw InternalError();
         }
     }
     // Header
@@ -3710,6 +3775,8 @@ void WCSP::propagateAC()
     if (Store::getDepth() == 0)
         AC.sort(false);
     while (!AC.empty()) {
+        if (ToulBar2::interrupted)
+            throw TimeOut();
         EnumeratedVariable* x = (EnumeratedVariable*)((ToulBar2::QueueComplexity) ? AC.pop_min() : AC.pop());
         if (x->unassigned())
             x->propagateAC();
@@ -4234,7 +4301,7 @@ void WCSP::propagate()
                     int eac_iter = 0;
                     while (objectiveChanged || !NC.empty() || !IncDec.empty() || ((ToulBar2::LcLevel == LC_AC || ToulBar2::LcLevel >= LC_FDAC) && !AC.empty())
                         || (ToulBar2::LcLevel >= LC_DAC
-                            && !DAC.empty())
+                               && !DAC.empty())
                         || (ToulBar2::LcLevel == LC_EDAC && !CSP(getLb(), getUb()) && !EAC1.empty())) {
                         eac_iter++;
                         propagateIncDec();
@@ -4276,7 +4343,7 @@ void WCSP::propagate()
                         if (ToulBar2::DEE_) {
                             propagateDEE(); // DEE requires NC and can break soft AC but not VAC
                         }
-                        if (ToulBar2::LcLevel == LC_EDAC && eac_iter > MAX_EAC_ITER) {
+                        if (ToulBar2::LcLevel == LC_EDAC && eac_iter > ToulBar2::maxEACIter) {
                             EAC1.clear();
                             cout << "c automatically switch from EDAC to FDAC." << endl;
                             ToulBar2::LcLevel = LC_FDAC;
@@ -4338,7 +4405,7 @@ void WCSP::restoreSolution(Cluster* c)
         EnumeratedVariable* z = (EnumeratedVariable*)ei.z;
         assert(x);
         assert(x->assigned());
-        if (c && !c->isVar(x->wcspIndex))
+        if (c && ((!c->getFreedom() && !c->isVar(x->wcspIndex)) || (c->getFreedom() && !c->isVarTree(x->wcspIndex))))
             continue;
         if (y && y->unassigned())
             continue;
@@ -4439,6 +4506,7 @@ void WCSP::initElimConstrs()
 // Function that adds a new binary constraint from the pool of fake constraints
 BinaryConstraint* WCSP::newBinaryConstr(EnumeratedVariable* x, EnumeratedVariable* y, Constraint* from1, Constraint* from2)
 {
+    assert(x != y);
     unsigned int newIndex = (int)elimBinOrder;
     assert(newIndex < elimBinConstrs.size());
     BinaryConstraint* ctr = (BinaryConstraint*)elimBinConstrs[newIndex];
@@ -4446,6 +4514,7 @@ BinaryConstraint* WCSP::newBinaryConstr(EnumeratedVariable* x, EnumeratedVariabl
     if (ToulBar2::vac)
         ((VACBinaryConstraint*)ctr)->VACfillElimConstr();
     ctr->isDuplicate_ = false;
+    ctr->cluster = -1;
     return ctr;
 }
 
@@ -4463,11 +4532,13 @@ BinaryConstraint* WCSP::newBinaryConstr(EnumeratedVariable* x, EnumeratedVariabl
 // if they do not exist in the main pool (constrs)
 TernaryConstraint* WCSP::newTernaryConstr(EnumeratedVariable* x, EnumeratedVariable* y, EnumeratedVariable* z, Constraint* from1)
 {
+    assert(x != y && x != z && y != z);
     unsigned int newIndex = (int)elimTernOrder;
     assert(newIndex < elimTernConstrs.size());
     TernaryConstraint* ctr = (TernaryConstraint*)elimTernConstrs[newIndex];
     ctr->fillElimConstr(x, y, z, from1);
     ctr->isDuplicate_ = false;
+    ctr->cluster = -1;
     return ctr;
 }
 
@@ -4890,7 +4961,7 @@ void WCSP::project(Constraint*& ctr_inout, EnumeratedVariable* var, Constraint* 
     } break;
     default: {
         cerr << "Bad resulting cost function arity during generic variable elimination!";
-        exit(EXIT_FAILURE);
+        throw InternalError();
     }
     }
     ctr_inout = ctr;
@@ -5175,58 +5246,30 @@ bool WCSP::isAlreadyTreeDec(char* filename)
 
 void WCSP::buildTreeDecomposition()
 {
-    td = new TreeDecomposition(this);
     double time = cpuTime();
+    CmpVarStruct::wcsp = this; // hook pointer for connection between TVarsSorted and current WCSP
+    td = new TreeDecomposition(this);
     if (isAlreadyTreeDec(ToulBar2::varOrder))
         td->buildFromCovering(ToulBar2::varOrder);
     else if (ToulBar2::approximateCountingBTD)
         td->buildFromOrderForApprox();
     else
         td->buildFromOrder();
-    if (ToulBar2::verbose >= 0)
-        cout << "Tree decomposition time: " << cpuTime() - time << " seconds." << endl;
     if (!ToulBar2::approximateCountingBTD) {
         vector<int> order;
         td->getElimVarOrder(order);
         // allows propagation to operate on the whole problem without modifying tree decomposition local lower bounds and delta costs
         // it is important for RDS-BTD which assumes zero cluster lower bounds and no delta cost moves
+        // TODO: uncomment these four lines if you want the same DAC order between HBFS and adaptive BTD-HBFS
         TreeDecomposition* tmptd = td;
         td = NULL;
         setDACOrder(order);
         td = tmptd;
         // new constraints may be produced by variable elimination that must be correctly assigned to a cluster
-        for (unsigned int i = 0; i < numberOfConstraints(); i++)
-            if (constrs[i]->getCluster() == -1)
-                constrs[i]->assignCluster();
-        for (int i = 0; i < elimBinOrder; i++)
-            if (elimBinConstrs[i]->connected() && elimBinConstrs[i]->getCluster() == -1)
-                elimBinConstrs[i]->assignCluster();
-        for (int i = 0; i < elimTernOrder; i++)
-            if (elimTernConstrs[i]->connected() && elimTernConstrs[i]->getCluster() == -1)
-                elimTernConstrs[i]->assignCluster();
-        // check if ternary constraint cluster assignments are valid and do corrections if needed
-        for (unsigned int i = 0; i < numberOfConstraints(); i++) {
-            Constraint* ctr = getCtr(i);
-            if (ctr->connected() && !ctr->isSep()) {
-                if (ctr->isTernary()) {
-                    TernaryConstraint* tctr = (TernaryConstraint*)ctr;
-                    tctr->setDuplicates();
-                    assert(tctr->xy->getCluster() == tctr->getCluster() && tctr->xz->getCluster() == tctr->getCluster() && tctr->yz->getCluster() == tctr->getCluster());
-                }
-            }
-        }
-        for (int i = 0; i < elimTernOrder; i++)
-            if (elimTernConstrs[i]->connected()) {
-                Constraint* ctr = elimTernConstrs[i];
-                if (ctr->connected() && !ctr->isSep()) {
-                    if (ctr->isTernary()) {
-                        TernaryConstraint* tctr = (TernaryConstraint*)ctr;
-                        tctr->setDuplicates();
-                        assert(tctr->xy->getCluster() == tctr->getCluster() && tctr->xz->getCluster() == tctr->getCluster() && tctr->yz->getCluster() == tctr->getCluster());
-                    }
-                }
-            }
+        td->setDuplicates();
     }
+    if (ToulBar2::verbose >= 0)
+        cout << "Tree decomposition time: " << cpuTime() - time << " seconds." << endl;
 }
 
 void WCSP::treeDecFile2Vector(char* filename, vector<int>& order)
@@ -5237,7 +5280,7 @@ void WCSP::treeDecFile2Vector(char* filename, vector<int>& order)
 
     set<int> usedvars;
 
-    ifstream file(filename, ios::in);
+    ifstream file(filename, std::ios::in);
     string fstr;
     while (getline(file, fstr)) {
         istringstream file(fstr);
@@ -5267,12 +5310,14 @@ void WCSP::treeDecFile2Vector(char* filename, vector<int>& order)
 
     if (order.size() != numberOfVariables()) {
         cerr << "Tree decomposition file does not cover all the variables." << endl;
-        exit(EXIT_FAILURE);
+        throw WrongFileFormat();
     }
 }
 
 void WCSP::elimOrderFile2Vector(char* elimVarOrder, vector<int>& order)
 {
+    if (numberOfVariables() == 0)
+        return;
 #ifdef BOOST
     if (reinterpret_cast<uintptr_t>(elimVarOrder) > ELIM_NONE && reinterpret_cast<uintptr_t>(elimVarOrder) < ELIM_MAX) {
         switch (reinterpret_cast<uintptr_t>(elimVarOrder)) {
@@ -5309,7 +5354,7 @@ void WCSP::elimOrderFile2Vector(char* elimVarOrder, vector<int>& order)
             break;
         default: {
             cerr << "Variable elimination order " << reinterpret_cast<uintptr_t>(elimVarOrder) << " not implemented yet!" << endl;
-            exit(EXIT_FAILURE);
+            throw BadConfiguration();
         }
         }
     } else {
@@ -5337,7 +5382,7 @@ void WCSP::elimOrderFile2Vector(char* elimVarOrder, vector<int>& order)
 #endif
     if (order.size() != numberOfVariables()) {
         cerr << "Variable elimination order file has incorrect number of variables." << endl;
-        exit(EXIT_FAILURE);
+        throw WrongFileFormat();
     }
 }
 
@@ -5357,7 +5402,7 @@ vector<int> WCSP::getBergeDecElimOrder()
     for (int j = numberOfVariables() - 1; j >= 0; j--) {
         int i = dacorder[j];
         if (ToulBar2::nbDecisionVars == 0 || i < ToulBar2::nbDecisionVars) {
-            if (!marked[i] && getName(i).rfind(IMPLICIT_VAR_TAG,0) != 0 && getName(i).rfind(DIVERSE_VAR_TAG,0) != 0) {
+            if (!marked[i] && getName(i).rfind(IMPLICIT_VAR_TAG, 0) != 0 && getName(i).rfind(DIVERSE_VAR_TAG, 0) != 0) {
                 visit(i, revdac, marked, listofsuccessors);
             }
         }
@@ -5389,7 +5434,7 @@ void WCSP::setDACOrder(vector<int>& order)
 {
     if (order.size() != numberOfVariables()) {
         cerr << "DAC order has incorrect number of variables." << endl;
-        exit(EXIT_FAILURE);
+        throw InternalError();
     }
 
     // set DAC order to the inverse of the elimination variable ordering
@@ -5411,8 +5456,8 @@ void WCSP::setDACOrder(vector<int>& order)
         });
 
     // during search, must reorder allVars accordingly before propagate calls setvalue
-    if (solver && ((Solver *)solver)->numberOfUnassignedVariables() >= 0) {
-        ((Solver *)solver)->updateVarHeuristic();
+    if (solver && ((Solver*)solver)->numberOfUnassignedVariables() >= 0) {
+        ((Solver*)solver)->updateVarHeuristic();
     }
 
     for (unsigned int i = 0; i < numberOfConstraints(); i++) {
@@ -5435,24 +5480,13 @@ void WCSP::setDACOrder(vector<int>& order)
             ctr->propagate();
     }
     propagate();
-
-    // recompute all tightness: too slow??? side-effect to reset weighted degrees???
-    for (unsigned int i = 0; i < constrs.size(); i++)
-        if (constrs[i]->connected())
-            constrs[i]->computeTightness();
-    for (int i = 0; i < elimBinOrder; i++)
-        if (elimBinConstrs[i]->connected())
-            elimBinConstrs[i]->computeTightness();
-    for (int i = 0; i < elimTernOrder; i++)
-        if (elimTernConstrs[i]->connected())
-            elimTernConstrs[i]->computeTightness();
 }
 
 // -----------------------------------------------------------
 // Functions for dealing with probabilities and decimal point numbers.
 // Warning: ToulBar2::NormFactor has to be initialized
 
-// Converts the decimal Token to a cost and a actual number of significant digit after the decimal
+// Converts the decimal Token to a cost and the actual number of significant digit after the decimal point
 // Should yell if unfeasible with recent GCC/CLang compiler with builtins.
 // The string is assumed to be space trimmed.The conversion uses the upper bound precision
 // and ToulBar2::costMultiplier for scaling but does not shift cost using negCost.
@@ -5475,6 +5509,11 @@ inline pair<Cost, int> WCSP::Decimal2Cost(const string& decimalToken, const unsi
         pos = 1;
     } else if (decimalToken[pos] == '+') {
         pos = 1;
+    } else if ((dot == 2) && decimalToken == "inf") {
+        if (ToulBar2::costMultiplier < 0.0)
+            return pair<Cost, size_t>(-MAX_COST, 0);
+        else
+            return pair<Cost, size_t>(MAX_COST, 0);
     }
 
     while ((pos < decimalToken.length()) && (pos <= ToulBar2::decimalPoint + dot)) {
@@ -5526,7 +5565,7 @@ invalid:
             << endl;
     else
         cerr << "' in command line" << endl;
-    exit(1);
+    throw WrongFileFormat();
 }
 
 Cost WCSP::decimalToCost(const string& decimalToken, const unsigned int lineNumber) const
@@ -5541,7 +5580,7 @@ Cost WCSP::Prob2Cost(TProb p) const
     TLogProb res = -Log(p) * ToulBar2::NormFactor;
     if (res > to_double(MAX_COST)) {
         cerr << "Overflow when converting probability to cost." << endl;
-        exit(EXIT_FAILURE);
+        throw InternalError();
     }
     Cost c = (Cost)res;
     if (c > MAX_COST / 2)
@@ -5631,6 +5670,13 @@ void WCSP::visit(int i, vector<int>& revdac, vector<bool>& marked, const vector<
     }
     revdac.push_back(i);
 }
+
+#ifdef ILOGCPLEX
+bool WCSP::isPLPS()
+{
+    return isGlobal() && find_if(globalconstrs.begin(), globalconstrs.end(), [&](const auto& val) { return val->getName().find("slinear") != std::string::npos; }) != globalconstrs.end();
+}
+#endif
 
 /* Local Variables: */
 /* c-basic-offset: 4 */

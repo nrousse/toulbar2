@@ -252,10 +252,6 @@ void RegularFlowConstraint::buildGraph(Graph& g)
         }
     }
     buildGraphBasic(g, true);
-
-    /* g.print();
-
-    exit(0);*/
 }
 
 void RegularFlowConstraint::buildGraphBasic(Graph& g, bool needRebuildIndex)
@@ -462,7 +458,7 @@ void RegularFlowConstraint::dump(ostream& os, bool original)
 
 string RegularFlowConstraint::getName()
 {
-    ostringstream name;
+    std::ostringstream name;
     name << "sregular_" << to_string(subdef) << "_" << to_string(insdef) << "_" << to_string(deldef) << "\n{";
     dfa.dump(name, true);
     name << "\n}";

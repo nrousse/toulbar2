@@ -6,6 +6,7 @@
 #include "toulbar2lib.hpp"
 #include "core/tb2enumvar.hpp"
 #include "tb2haplotype.hpp"
+using std::ifstream;
 
 // A MODIFIER POUR PLUSIEURS LOCUS (freqalleles.find(locus))
 void Haplotype::iniProb(WCSP* wcsp)
@@ -17,7 +18,7 @@ void Haplotype::iniProb(WCSP* wcsp)
     ToulBar2::NormFactor = (-1.0 / Log1p(-Exp10(-(TProb)ToulBar2::resolution)));
     if (ToulBar2::NormFactor > (Pow((TProb)2., (TProb)INTEGERBITS) - 1) / ((TProb)ToulBar2::resolution)) {
         cerr << "This resolution cannot be ensured on the data type used to represent costs." << endl;
-        exit(EXIT_FAILURE);
+        throw BadConfiguration();
     }
 
     int nballeles = alleles.size() - 1;
@@ -76,7 +77,7 @@ void Haplotype::iniProb(WCSP* wcsp)
     }
     if (TopProb > to_double(MAX_COST)) {
         cerr << "Overflow: product of min probabilities < size of used datatype." << endl;
-        exit(EXIT_FAILURE);
+        throw BadConfiguration();
     }
     wcsp->updateUb((Cost)((Long)TopProb));
 }
@@ -136,7 +137,7 @@ void Haplotype::readMap(const char* fileName)
         cerr << "No markers map file specified. Trying " << strmap << endl;
         if (!fmap) {
             cerr << "No markers map file found." << endl;
-            exit(EXIT_FAILURE);
+            throw WrongFileFormat();
         }
     }
     while (fmap && ok) {
@@ -195,7 +196,7 @@ void Haplotype::readPedigree(const char* fileName, WCSP* wcsp)
     ifstream file(fileName);
     if (!file) {
         cerr << "Could not open file " << fileName << endl;
-        exit(EXIT_FAILURE);
+        throw WrongFileFormat();
     }
 
     ifstream fileErrors(errorfilename.c_str());
@@ -213,13 +214,13 @@ void Haplotype::readPedigree(const char* fileName, WCSP* wcsp)
             family = cur_family;
         if (family != cur_family) {
             cerr << "Pedigree datafile contains more than one locus!" << endl;
-            exit(EXIT_FAILURE);
+            throw WrongFileFormat();
         }
 
         file >> individual;
         if (!file) {
             cerr << "(1) Wrong data after individual " << individual << endl;
-            exit(EXIT_FAILURE);
+            throw WrongFileFormat();
         }
         assert(individual != 0);
         if (individuals.count(individual) == 0) {
@@ -233,7 +234,7 @@ void Haplotype::readPedigree(const char* fileName, WCSP* wcsp)
 
         if (!file) {
             cerr << "(2) Wrong data after individual " << individual << endl;
-            exit(EXIT_FAILURE);
+            throw WrongFileFormat();
         }
         if (pedigree[individuals[individual]].father > 0 && individuals.count(pedigree[individuals[individual]].father) == 0) {
             individuals[pedigree[individuals[individual]].father] = nbindividuals;
@@ -246,7 +247,7 @@ void Haplotype::readPedigree(const char* fileName, WCSP* wcsp)
         file >> pedigree[individuals[individual]].mother;
         if (!file) {
             cerr << "(3) Wrong data after individual " << individual << endl;
-            exit(EXIT_FAILURE);
+            throw WrongFileFormat();
         }
         if (pedigree[individuals[individual]].mother > 0 && individuals.count(pedigree[individuals[individual]].mother) == 0) {
             individuals[pedigree[individuals[individual]].mother] = nbindividuals;
@@ -270,7 +271,7 @@ void Haplotype::readPedigree(const char* fileName, WCSP* wcsp)
 
         if (!file) {
             cerr << "(4) Wrong data after individual " << individual << endl;
-            exit(EXIT_FAILURE);
+            throw WrongFileFormat();
         }
         numal = 0;
         do {
@@ -279,7 +280,7 @@ void Haplotype::readPedigree(const char* fileName, WCSP* wcsp)
             file >> allele;
             if (!file) {
                 cerr << "(5) Wrong data after individual " << individual << endl;
-                exit(EXIT_FAILURE);
+                throw WrongFileFormat();
             }
             if (allele < 0) {
                 gen.fixed = true;
@@ -293,7 +294,7 @@ void Haplotype::readPedigree(const char* fileName, WCSP* wcsp)
             file >> allele;
             if (!file) {
                 cerr << "(6) Wrong data after individual " << individual << endl;
-                exit(EXIT_FAILURE);
+                throw WrongFileFormat();
             }
             if (allele < 0) {
                 gen.fixed = true;
@@ -896,7 +897,7 @@ void Haplotype::printCorrectSol(WCSP* wcsp)
     if (!file) {
         cerr << "Could not write file "
              << "solution" << endl;
-        exit(EXIT_FAILURE);
+        throw WrongFileFormat();
     }
 
     for (vector<Individual>::iterator it = pedigree.begin(); it != pedigree.end(); ++it) {
@@ -923,7 +924,7 @@ void Haplotype::printSol(WCSP* wcsp)
         if (!file) {
             cerr << "Could not write file "
                  << "solution" << endl;
-            exit(EXIT_FAILURE);
+            throw WrongFileFormat();
         }
         for (vector<Individual>::iterator it = pedigree.begin(); it != pedigree.end(); ++it) {
             Individual& ind = *it;
@@ -1037,7 +1038,7 @@ void Haplotype::save(const char* fileName, WCSP* wcsp, bool corrected, bool redu
     ofstream file(fileName);
     if (!file) {
         cerr << "Could not open file " << fileName << endl;
-        exit(EXIT_FAILURE);
+        throw WrongFileFormat();
     }
 
     for (map<int, int>::iterator iter = individuals.begin(); iter != individuals.end(); ++iter) {

@@ -4,6 +4,9 @@
  * Variable elimination ordering heuristics developed by Cyril Terrioux <cyril.terrioux@lsis.org>
  */
 
+#include "core/tb2wcsp.hpp"
+#include "core/tb2binconstr.hpp"
+
 #ifdef BOOST
 #include <boost/config.hpp>
 #include <boost/graph/adjacency_list.hpp>
@@ -34,12 +37,6 @@ typedef adjacency_list<setS, vecS, undirectedS, no_property,
     property<edge_weight_t, double, property<edge_component_t, std::size_t>>>
     DoubleWeightedGraph;
 typedef adjacency_list<setS, vecS, undirectedS, property<vertex_color_t, default_color_type, property<vertex_degree_t, int>>> ColoredGraph;
-#endif
-
-#include "core/tb2wcsp.hpp"
-#include "core/tb2binconstr.hpp"
-
-#ifdef BOOST
 
 template <typename T>
 static void addConstraint(Constraint* c, T& g)
@@ -530,7 +527,7 @@ void WCSP::minimumFillInOrdering(vector<int>& order_inv)
         /* compute number of fill-in edges to add for each unprocessed vertex */
         /* choose vertex with minimum fill-in */
         int v = 0;
-        int minfill = n * n;
+        Long minfill = (Long)n * n;
         int deg = -1;
         for (int x = 0; x < n; x++) {
             if ((order[x] == -1) && ((nb_fillin[x] < minfill) || ((nb_fillin[x] == minfill) && (degree[x] > deg)))) {
@@ -599,7 +596,7 @@ void WCSP::minimumFillInOrdering(vector<int>& order_inv)
     if (ToulBar2::verbose >= 1) {
         cout << "Min-fill ordering:";
         for (int j = 0; j < n; ++j) {
-            cout << " " << order_inv[j];
+            cout << " " << getName(order_inv[j]);
         }
         cout << endl;
     }

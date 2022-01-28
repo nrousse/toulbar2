@@ -1,46 +1,27 @@
 #include "tb2mipsolver.hpp"
 
-MIP::MIP()
-    : solver(NULL)
-{
 #ifdef ILOGCPLEX
-    solver = new IlogMIP();
-#endif
-    if (solver == this) {
-        cout << "Error: Looping In IlogMIP\n";
-        exit(1);
-    }
-}
 
-MIP::~MIP()
+MIP* MIP::makeMIP()
 {
-    delete solver;
+    return new IlogMIP();
 }
-
-#ifdef ILOGCPLEX
 
 IlogMIP::IlogMIP()
 {
-    model = (IloModel*)malloc(sizeof(IloModel));
-    *model = IloModel(env);
+    model = new IloModel(env);
 
-    var = (IloNumVarArray*)malloc(sizeof(IloNumVarArray));
-    *var = IloNumVarArray(env);
+    var = new IloNumVarArray(env);
 
-    obj = (IloObjective*)malloc(sizeof(IloObjective));
-    *obj = IloObjective(env, 0, IloObjective::Minimize);
+    obj = new IloObjective(env, 0, IloObjective::Minimize);
 
-    con = (IloRangeArray*)malloc(sizeof(IloRangeArray));
-    *con = IloRangeArray(env);
+    con = new IloRangeArray(env);
 
-    cplex = (IloCplex*)malloc(sizeof(IloCplex));
-    *cplex = IloCplex(env);
+    cplex = new IloCplex(env);
 
-    sols = (IloNumArray*)malloc(sizeof(IloNumArray));
-    *sols = IloNumArray(env);
+    sols = new IloNumArray(env);
 
-    buObjExpr = (IloNumExprArg*)malloc(sizeof(IloNumExprArg));
-    *buObjExpr = IloNumExprArg();
+    buObjExpr = new IloNumExprArg();
 
     cols.clear();
     rowCount = 0;
@@ -171,7 +152,7 @@ int IlogMIP::augment(int var1)
     (*var)[var1].setLB(1);
     solve();
     int cost = solValue();
-    assert(sol(var1) == 1);
+    assert(sols->getSize() == 0 || sol(var1) == 1);
     (*var)[var1].setLB(0);
     return cost;
 } // compute the minimal when a value is used
@@ -193,14 +174,17 @@ int IlogMIP::solve()
     unsigned t0 = clock();
     cplex->solve();
     called += clock() - t0;
+    if (cplex->getStatus() == IloAlgorithm::Infeasible) {
+        throw Contradiction(); //cannot call THROWCONTRADICTION because no conflict function for weighted degree heuristic
+    }
     if (cplex->getStatus() != IloAlgorithm::Optimal) {
-        std::cout << "Solution status = " << cplex->getStatus() << std::endl;
-        cout << "IlogMIP solver error." << endl;
-        cout << *con << endl;
-        cout << *obj << endl;
-        cout << *sols << endl;
-        cout << "cost = " << objValue << endl;
-        exit(0);
+        cerr << "Solution status = " << cplex->getStatus() << std::endl;
+        cerr << "IlogMIP solver error." << endl;
+        cerr << *con << endl;
+        cerr << *obj << endl;
+        cerr << *sols << endl;
+        cerr << "cost = " << objValue << endl;
+        throw InternalError();
     }
 
     if (cplex->getObjValue() - floor(cplex->getObjValue()) < 0.000001) {
@@ -230,7 +214,7 @@ void IlogMIP::removeValue(int varindex, int value)
 
 int IlogMIP::augment(int varindex, int value)
 {
-    if (sol(varindex, value) == 1) {
+    if (sols->getSize() > 0 && sol(varindex, value) == 1) {
         return solValue();
     } else {
         return augment(mapvar[varindex][value]);

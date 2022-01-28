@@ -130,33 +130,35 @@ WeightedAmong::~WeightedAmong()
 
 void WeightedAmong::addToCostFunctionNetwork(WCSP* wcsp)
 {
-    if (semantics=="hard" || baseCost >= wcsp->getUb()) {
+    if (semantics == "hard" || baseCost >= wcsp->getUb()) {
         vector<int> scopevec;
-        for (int i=0; i<arity; i++) {
+        for (int i = 0; i < arity; i++) {
             scopevec.push_back(scope[i]);
         }
-        if (lb>0) {
+        if (lb > 0) {
             string params;
-            params.append(to_string(lb)+ " ");
-            for (int i=0; i<arity; i++) {
-                params.append(to_string(values.size())+" ");
-                for (int e: values) {
-                    params.append( to_string(e) + " 1 ");
+            params.append(to_string(lb) + " ");
+            for (int i = 0; i < arity; i++) {
+                params.append(to_string(values.size()) + " ");
+                for (Value e : values) {
+                    params.append(to_string(e) + " 1 ");
                 }
             }
-            if (ToulBar2::verbose >= 1) cout  << "wamong => knapsackp " << params << endl;
+            if (ToulBar2::verbose >= 1)
+                cout << "wamong => knapsackp " << params << endl;
             wcsp->postKnapsackConstraint(scopevec, params, false, true);
         }
-        if ((int)ub<arity) {
+        if ((int)ub < arity) {
             string params;
-            params.append("-" + to_string(ub)+ " ");
-            for (int i=0; i<arity; i++) {
-                params.append( to_string(values.size()) + " ");
-                for (int e: values) {
-                    params.append( to_string(e)+" -1 ");
+            params.append("-" + to_string(ub) + " ");
+            for (int i = 0; i < arity; i++) {
+                params.append(to_string(values.size()) + " ");
+                for (Value e : values) {
+                    params.append(to_string(e) + " -1 ");
                 }
             }
-            if (ToulBar2::verbose >= 1) cout  << "wamong => knapsackp " << params << endl;
+            if (ToulBar2::verbose >= 1)
+                cout << "wamong => knapsackp " << params << endl;
             wcsp->postKnapsackConstraint(scopevec, params, false, true);
         }
         return;
@@ -256,7 +258,7 @@ void WeightedAmong::addToCostFunctionNetwork(WCSP* wcsp)
     wcsp->postUnary(addVariablesIndex[arity], unaryCosts);
 }
 
-Cost WeightedAmong::evaluate(int* tuple)
+Cost WeightedAmong::evaluate(Value* tuple)
 {
     int occurency = 0;
     for (int var = 0; var < arity; var++) {
@@ -284,7 +286,7 @@ void WeightedAmong::display()
     cout << endl;
     cout << "sem : " << semantics << " " << baseCost << endl;
     cout << "val : ";
-    for (set<int>::iterator value = values.begin(); value != values.end(); value++) {
+    for (set<Value>::iterator value = values.begin(); value != values.end(); value++) {
         cout << *value << " ";
     }
     cout << endl;
@@ -340,7 +342,7 @@ void WeightedRegular::addToCostFunctionNetwork(WCSP* wcsp)
         if (ToulBar2::verbose > 1)
             cout << "wregular add varname =" << varname << "=> var index " << wcsp->numberOfVariables() << " domain size = " << domsize + 1 << endl;
     } else {
-        exit(EXIT_FAILURE);
+        throw WrongFileFormat();
     }
     //################################################initial state ##############################################
     if (automaton->getInitialStates().size() > 0) {
@@ -391,7 +393,7 @@ void WeightedRegular::addToCostFunctionNetwork(WCSP* wcsp)
                 final_states_costs[t_index] = ucost;
             } else {
                 cout << "wregular tuple error " << t_index << "out of domain" << DomVar << endl;
-                exit(EXIT_FAILURE);
+                throw WrongFileFormat();
             }
         }
         wcsp->postUnary(q_last, final_states_costs);
@@ -644,7 +646,7 @@ void WeightedSum::addToCostFunctionNetwork(WCSP* wcsp)
     //cout << "after  adding to CFN" << endl;
 }
 
-Cost WeightedSum::evaluate(int* tuple)
+Cost WeightedSum::evaluate(Value* tuple)
 {
     int sum = 0;
     for (int var = 0; var < arity; var++) {
@@ -1039,7 +1041,7 @@ void WeightedOverlap::addToCostFunctionNetwork(WCSP* wcsp)
     wcsp->postUnary(addVariablesAmong[arity / 2], unaryCosts);
 }
 
-Cost WeightedOverlap::evaluate(int* tuple)
+Cost WeightedOverlap::evaluate(Value* tuple)
 {
     int occurency = 0;
     for (int var = 0; var < arity / 2; var++) {
@@ -1248,7 +1250,7 @@ void WeightedVarAmong::display()
     cout << " == " << scope[arity - 1] << endl;
     cout << "sem : " << semantics << " " << baseCost << endl;
     cout << "val : ";
-    for (set<int>::iterator value = values.begin(); value != values.end(); value++) {
+    for (set<Value>::iterator value = values.begin(); value != values.end(); value++) {
         cout << *value << " ";
     }
     cout << endl;
@@ -1347,7 +1349,7 @@ void WeightedGcc::setBounds(Value value, unsigned int lb, unsigned int ub)
     it = bounds.find(value);
     if (it != bounds.end()) {
         cerr << "WeightedGcc::setBounds | Value " << value << " is already watch" << endl;
-        exit(128);
+        throw WrongFileFormat();
     }
     bounds[value] = make_pair(lb, ub);
 }
@@ -1453,7 +1455,7 @@ WeightedSame::WeightedSame(unsigned int _arity, int* _scope, istream& file, bool
         baseCost *= ToulBar2::costMultiplier;
     if (_arity % 2 == 1) {
         cerr << "WeightedSame::Constructor the scope must be even" << endl;
-        exit(128);
+        throw WrongFileFormat();
     }
     //display();
 }
@@ -1592,7 +1594,7 @@ WeightedSameGcc::WeightedSameGcc(unsigned int _arity, int* _scope, istream& file
     }
     if (_arity % 2 == 1) {
         cerr << "WeightedSameGcc::Constructor the scope must be even" << endl;
-        exit(128);
+        throw WrongFileFormat();
     }
     //display();
 }
@@ -1604,7 +1606,7 @@ void WeightedSameGcc::setBounds(Value value, unsigned int lb, unsigned int ub)
     it = bounds.find(value);
     if (it != bounds.end()) {
         cerr << "WeightedSameGcc::setBounds | Value " << value << " is already watch" << endl;
-        exit(128);
+        throw WrongFileFormat();
     }
     bounds[value] = make_pair(lb, ub);
 }
@@ -1770,7 +1772,6 @@ void WeightedSameGcc::display()
     }
 }
 
-
 /// WEIGHTED AMONG /////////////////////////////////////////////////////
 
 WeightedDiverse::WeightedDiverse()
@@ -1809,8 +1810,8 @@ void WeightedDiverse::addToCostFunctionNetwork(WCSP* wcsp)
 {
     baseCost = wcsp->getUb();
     int nbVariableCFN = wcsp->numberOfVariables();
-    vector<Variable *> divVars;
-    map<int,Value> solutionmap;
+    vector<Variable*> divVars;
+    map<int, Value> solutionmap;
     for (int var = 0; var < arity; var++) {
         divVars.push_back(wcsp->getVar(scope[var]));
         solutionmap[scope[var]] = values[var];
@@ -1829,7 +1830,7 @@ void WeightedDiverse::addToCostFunctionNetwork(WCSP* wcsp)
             EnumeratedVariable* theVar = static_cast<EnumeratedVariable*>(wcsp->getVar(divVarsIdMap[xId]));
             for (unsigned int val = 0; val < theVar->getDomainInitSize(); val++) {
                 theVar->addValueName("q" + std::to_string(val % (distance + 1)) + "_"
-                        + std::to_string(val / (distance + 1)));
+                    + std::to_string(val / (distance + 1)));
             }
         }
         wcsp->addDivConstraint(divVars, distance, solutionmap, divVarsIdMap);
@@ -1841,7 +1842,7 @@ void WeightedDiverse::addToCostFunctionNetwork(WCSP* wcsp)
             EnumeratedVariable* theVar = static_cast<EnumeratedVariable*>(wcsp->getVar(divVarsIdMap[xId]));
             for (unsigned int val = 0; val < theVar->getDomainInitSize(); val++) {
                 theVar->addValueName("q" + std::to_string(val % (distance + 1)) + "_"
-                        + std::to_string(val / (distance + 1)));
+                    + std::to_string(val / (distance + 1)));
             }
         }
         for (Variable* x : divVars) {
@@ -1867,7 +1868,7 @@ void WeightedDiverse::addToCostFunctionNetwork(WCSP* wcsp)
         break;
     default:
         cerr << "Error: no such diversity encoding method: " << ToulBar2::divMethod << endl;
-        exit(EXIT_FAILURE);
+        throw BadConfiguration();
     }
 }
 
@@ -1887,7 +1888,7 @@ Cost WeightedDiverse::evaluate(Value* tuple)
 
 void WeightedDiverse::display()
 {
-    cout << "W" << ((method==1)?"H":((method==2)?"T":"")) << "Diverse (" << arity << ") : ";
+    cout << "W" << ((method == 1) ? "H" : ((method == 2) ? "T" : "")) << "Diverse (" << arity << ") : ";
     for (int variable = 0; variable < arity; ++variable) {
         cout << scope[variable] << " ";
     }
@@ -1895,7 +1896,7 @@ void WeightedDiverse::display()
     cout << "sem : " << semantics << " " << baseCost << endl;
     cout << "distance: " << distance << endl;
     cout << "values: ";
-    for (Value v: values) {
+    for (Value v : values) {
         cout << v << " ";
     }
     cout << endl;

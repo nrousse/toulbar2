@@ -1,6 +1,6 @@
 /** \file tb2ternaryconstr.hpp
  *  \brief Ternary constraint applied on variables with enumerated domains.
- *
+ *  \warning EAC is not applied on duplicated ternary constraints
  */
 
 #ifndef TB2TERNARYCONSTR_HPP_
@@ -234,7 +234,10 @@ protected:
 #else
     vector<StoreCost> costsYZ;
 #endif
-    inline Value getFunctionX(Value vy, Value vz) const { return functionX[y->toIndex(vy) * sizeZ + z->toIndex(vz)]; }
+    inline Value getFunctionX(Value vy, Value vz) const
+    {
+        return functionX[y->toIndex(vy) * sizeZ + z->toIndex(vz)];
+    }
     inline Value getFunctionY(Value vx, Value vz) const { return functionY[x->toIndex(vx) * sizeZ + z->toIndex(vz)]; }
     inline Value getFunctionZ(Value vx, Value vy) const { return functionZ[x->toIndex(vx) * sizeY + y->toIndex(vy)]; }
 
@@ -273,6 +276,12 @@ protected:
     void findSupportZ() { findSupport(Functor_getCostZXY(*this), functionalX, Functor_getFunctionXZY(*this), functionalY, Functor_getFunctionYZX(*this), z, x, y, 2, 0, 1, supportZ, deltaCostsZ, supportX, supportY); }
     void findFullSupportX()
     {
+#ifdef NO_STORE_TERNARY_COSTS
+        if (Store::getDepth() > 0) {
+            findSupportX();
+            return;
+        }
+#endif
         if (y->wcspIndex < z->wcspIndex)
             findFullSupport(Functor_getCostXYZ(*this), Functor_getCostXZY(*this), Functor_getCostYZX(*this), Functor_getCostWithBinariesXYZ(*this), Functor_addCostXYZ(*this), Functor_addCostXZY(*this), Functor_addCostYZX(*this), functionalX, Functor_getFunctionXYZ(*this), functionalY, Functor_getFunctionYXZ(*this), functionalZ, Functor_getFunctionZXY(*this), x, y, z, 0, 1, 2, supportX, deltaCostsX, supportY, deltaCostsY, supportZ, deltaCostsZ, xy, xz, yz);
         else
@@ -280,6 +289,12 @@ protected:
     }
     void findFullSupportY()
     {
+#ifdef NO_STORE_TERNARY_COSTS
+        if (Store::getDepth() > 0) {
+            findSupportY();
+            return;
+        }
+#endif
         if (x->wcspIndex < z->wcspIndex)
             findFullSupport(Functor_getCostYXZ(*this), Functor_getCostYZX(*this), Functor_getCostXZY(*this), Functor_getCostWithBinariesYXZ(*this), Functor_addCostYXZ(*this), Functor_addCostYZX(*this), Functor_addCostXZY(*this), functionalY, Functor_getFunctionYXZ(*this), functionalX, Functor_getFunctionXYZ(*this), functionalZ, Functor_getFunctionZYX(*this), y, x, z, 1, 0, 2, supportY, deltaCostsY, supportX, deltaCostsX, supportZ, deltaCostsZ, xy, yz, xz);
         else
@@ -287,6 +302,12 @@ protected:
     }
     void findFullSupportZ()
     {
+#ifdef NO_STORE_TERNARY_COSTS
+        if (Store::getDepth() > 0) {
+            findSupportZ();
+            return;
+        }
+#endif
         if (x->wcspIndex < y->wcspIndex)
             findFullSupport(Functor_getCostZXY(*this), Functor_getCostZYX(*this), Functor_getCostXYZ(*this), Functor_getCostWithBinariesZXY(*this), Functor_addCostZXY(*this), Functor_addCostZYX(*this), Functor_addCostXYZ(*this), functionalZ, Functor_getFunctionZXY(*this), functionalX, Functor_getFunctionXZY(*this), functionalY, Functor_getFunctionYZX(*this), z, x, y, 2, 0, 1, supportZ, deltaCostsZ, supportX, deltaCostsX, supportY, deltaCostsY, xz, yz, xy);
         else
@@ -388,6 +409,12 @@ public:
 
     void addCosts(TernaryConstraint* xyz)
     {
+#ifdef NO_STORE_TERNARY_COSTS
+        if (Store::getDepth() > 0) {
+            cerr << "Cannot modify costs in ternary cost functions during search!" << endl;
+            throw BadConfiguration();
+        }
+#endif
         unsigned int ix, iy, iz;
         for (EnumeratedVariable::iterator itery = y->begin(); itery != y->end(); ++itery) {
             for (EnumeratedVariable::iterator iterz = z->begin(); iterz != z->end(); ++iterz) {
@@ -408,6 +435,12 @@ public:
 
     void addCosts(EnumeratedVariable* xin, EnumeratedVariable* yin, EnumeratedVariable* zin, vector<Cost>& costsin)
     {
+#ifdef NO_STORE_TERNARY_COSTS
+        if (Store::getDepth() > 0) {
+            cerr << "Cannot modify costs in ternary cost functions during search!" << endl;
+            throw BadConfiguration();
+        }
+#endif
         assert(costsin.size() <= costs.size() || functionalX);
 
         unsigned int vindex[3];
@@ -439,6 +472,12 @@ public:
 
     void addCost(Value vxi, Value vyi, Value vzi, Cost c)
     {
+#ifdef NO_STORE_TERNARY_COSTS
+        if (Store::getDepth() > 0) {
+            cerr << "Cannot modify costs in ternary cost functions during search!" << endl;
+            throw BadConfiguration();
+        }
+#endif
         assert(c >= MIN_COST || !LUBTEST(getCost(vxi, vyi, vzi), -c));
         unsigned int vx = x->toIndex(vxi);
         unsigned int vy = y->toIndex(vyi);
@@ -459,6 +498,12 @@ public:
 
     void addCost(EnumeratedVariable* xin, EnumeratedVariable* yin, EnumeratedVariable* zin, Value vxi, Value vyi, Value vzi, Cost c)
     {
+#ifdef NO_STORE_TERNARY_COSTS
+        if (Store::getDepth() > 0) {
+            cerr << "Cannot modify costs in ternary cost functions during search!" << endl;
+            throw BadConfiguration();
+        }
+#endif
         assert(c >= MIN_COST || !LUBTEST(getCost(xin, yin, zin, vxi, vyi, vzi), -c));
 
         unsigned int vindex[3];
@@ -489,6 +534,12 @@ public:
 
     void setcost(Value vxi, Value vyi, Value vzi, Cost c)
     {
+#ifdef NO_STORE_TERNARY_COSTS
+        if (Store::getDepth() > 0) {
+            cerr << "Cannot modify costs in ternary cost functions during search!" << endl;
+            throw BadConfiguration();
+        }
+#endif
         unsigned int vx = x->toIndex(vxi);
         unsigned int vy = y->toIndex(vyi);
         unsigned int vz = z->toIndex(vzi);
@@ -497,7 +548,7 @@ public:
                 costsYZ[vy * sizeZ + vz] = c;
             else if (!CUT(wcsp->getLb() + c, wcsp->getUb())) {
                 cerr << "cannot reset a forbidden tuple in ternary functional cost functions!" << endl;
-                exit(EXIT_FAILURE);
+                throw InternalError();
             }
         } else
             costs[vx * sizeY * sizeZ + vy * sizeZ + vz] = c;
@@ -505,6 +556,12 @@ public:
 
     void setcost(EnumeratedVariable* xin, EnumeratedVariable* yin, EnumeratedVariable* zin, Value vxi, Value vyi, Value vzi, Cost c)
     {
+#ifdef NO_STORE_TERNARY_COSTS
+        if (Store::getDepth() > 0) {
+            cerr << "Cannot modify costs in ternary cost functions during search!" << endl;
+            throw BadConfiguration();
+        }
+#endif
         unsigned int vindex[3];
         unsigned int vx = xin->toIndex(vxi);
         unsigned int vy = yin->toIndex(vyi);
@@ -517,7 +574,7 @@ public:
                 costsYZ[vindex[1] * sizeZ + vindex[2]] = c;
             else if (!CUT(c, wcsp->getUb())) {
                 cerr << "cannot reset a forbidden tuple in ternary functional cost functions!" << endl;
-                exit(EXIT_FAILURE);
+                throw InternalError();
             }
         } else
             costs[vindex[0] * sizeY * sizeZ + vindex[1] * sizeZ + vindex[2]] = c;
@@ -572,6 +629,7 @@ public:
 
     void resetSupports()
     {
+        using std::make_pair;
         supportX.assign(supportX.size(), make_pair(y->getInf(), z->getInf()));
         supportY.assign(supportY.size(), make_pair(x->getInf(), z->getInf()));
         supportZ.assign(supportZ.size(), make_pair(x->getInf(), y->getInf()));
@@ -789,17 +847,19 @@ public:
             return isEAC(Functor_getCostWithBinariesZXY(*this), functionalX, Functor_getFunctionXZY(*this), functionalY, Functor_getFunctionYZX(*this), z, a, x, y, supportZ);
             break;
         default:
-            exit(EXIT_FAILURE);
+            throw InternalError();
         }
         return true;
     }
+
+    bool checkTreeDecomposition(); ///\brief if tree decomposition then xy, xz, xz binary constraints attached to this ternary should all belong to the same cluster
 
     void findFullSupportEAC(int varIndex)
     {
         assert(!isDuplicate());
         if (ToulBar2::QueueComplexity && varIndex == getDACScopeIndex() && !ToulBar2::FullEAC)
             return;
-        assert(!wcsp->getTreeDec() || (cluster == xy->getCluster() && cluster == xz->getCluster() && cluster == yz->getCluster()));
+        assert(checkTreeDecomposition());
         switch (varIndex) {
         case 0:
             findFullSupportX();
@@ -859,7 +919,7 @@ public:
             if (connected())
                 projectTernaryBinary(Functor_getCostZXY(*this), Functor_getCostXYZ(*this), Functor_addCostXYZ(*this), functionalZ, Functor_getFunctionZXY(*this), z, x, y, xy);
         } else
-            exit(EXIT_FAILURE);
+            throw InternalError();
     }
 
     void extendTernary()
@@ -1138,7 +1198,7 @@ public:
         linkY->content.scopeIndex = 1;
         linkZ->content.scopeIndex = 2;
         setDACScopeIndex();
-        resetConflictWeight();
+        //resetConflictWeight(); // warning! it is done before having updated costs!! it will be done later in fillElimConstrBinaries
         elimFrom(from1);
     }
 
@@ -1153,9 +1213,15 @@ public:
     void dump_CFN(ostream& os, bool original = true);
     Long size() const FINAL { return (Long)sizeX * sizeY * sizeZ; }
 #ifdef NO_STORE_TERNARY_COSTS
-    Long space() const FINAL { return (Long)sizeof(Cost) * sizeX * sizeY * sizeZ; }
+    Long space() const FINAL
+    {
+        return (Long)sizeof(Cost) * sizeX * sizeY * sizeZ;
+    }
 #else
-    Long space() const FINAL { return (Long)sizeof(StoreCost) * sizeX * sizeY * sizeZ; }
+    Long space() const FINAL
+    {
+        return (Long)sizeof(StoreCost) * sizeX * sizeY * sizeZ;
+    }
 #endif
     friend struct Functor_getCostXYZ;
     friend struct Functor_getCostXZY;
@@ -1357,20 +1423,22 @@ void TernaryConstraint::project(T1 getCost, T2 addCost, bool functionalZ, T3 get
 {
     assert(ToulBar2::verbose < 4 || ((cout << "project(C" << getVar(0)->getName() << "," << getVar(1)->getName() << "," << getVar(2)->getName() << ", ((" << x->getName() << "," << valx << "),(" << y->getName() << "," << valy << ")), " << cost << ")" << endl), true));
     assert(cost >= MIN_COST);
-    // BUG!
-    // if (functionalZ) {
-    //   Value valz = getFunctionZ(x,y, valx, valy);
-    //   if (valz != WRONG_VAL && z->canbe(valz)) {
-    // 	if (!CUT(getCost(x,y,z, valx,valy,valz), wcsp->getUb())) { // keeps forbidden costs into ternaries to get strong GAC3
-    // 	  addCost(x,y,z,valx,valy,valz,-cost);
-    // 	}
-    //   }
-    // } else {
+// BUG!
+// if (functionalZ) {
+//   Value valz = getFunctionZ(x,y, valx, valy);
+//   if (valz != WRONG_VAL && z->canbe(valz)) {
+// 	if (!CUT(getCost(x,y,z, valx,valy,valz), wcsp->getUb())) { // keeps forbidden costs into ternaries to get strong GAC3
+// 	  addCost(x,y,z,valx,valy,valz,-cost);
+// 	}
+//   }
+// } else {
+#ifndef NO_STORE_TERNARY_COSTS
     for (EnumeratedVariable::iterator iterZ = z->begin(); iterZ != z->end(); ++iterZ) {
         if (!CUT(getCost(x, y, z, valx, valy, *iterZ), wcsp->getUb())) { // keeps forbidden costs into ternaries to get strong GAC3
             addCost(x, y, z, valx, valy, *iterZ, -cost);
         }
     }
+#endif
     // }
     xy->addcost(x, y, valx, valy, cost);
 #ifdef DEECOMPLETE
@@ -1423,7 +1491,7 @@ void TernaryConstraint::findSupport(T1 getCost, bool functionalY, T2 getFunction
         unsigned int xindex = x->toIndex(*iterX);
         pair<Value, Value> support = supportX[xindex];
         if (y->cannotbe(support.first) || z->cannotbe(support.second) || getCost(x, y, z, *iterX, support.first, support.second) > MIN_COST) {
-            support = make_pair(y->getInf(), z->getInf());
+            support = std::make_pair(y->getInf(), z->getInf());
             Cost minCost = MAX_COST;
             if (functionalZ) {
                 for (EnumeratedVariable::iterator iterY = y->begin(); minCost > MIN_COST && iterY != y->end(); ++iterY) {
@@ -1431,7 +1499,7 @@ void TernaryConstraint::findSupport(T1 getCost, bool functionalY, T2 getFunction
                     if (valZ != WRONG_VAL && z->canbe(valZ)) {
                         Cost cost = getCost(x, y, z, *iterX, *iterY, valZ);
                         if (GLB(&minCost, cost)) {
-                            support = make_pair(*iterY, valZ);
+                            support = std::make_pair(*iterY, valZ);
                         }
                     }
                 }
@@ -1441,7 +1509,7 @@ void TernaryConstraint::findSupport(T1 getCost, bool functionalY, T2 getFunction
                     if (valY != WRONG_VAL && y->canbe(valY)) {
                         Cost cost = getCost(x, y, z, *iterX, valY, *iterZ);
                         if (GLB(&minCost, cost)) {
-                            support = make_pair(valY, *iterZ);
+                            support = std::make_pair(valY, *iterZ);
                         }
                     }
                 }
@@ -1450,7 +1518,7 @@ void TernaryConstraint::findSupport(T1 getCost, bool functionalY, T2 getFunction
                     for (EnumeratedVariable::iterator iterZ = z->begin(); minCost > MIN_COST && iterZ != z->end(); ++iterZ) {
                         Cost cost = getCost(x, y, z, *iterX, *iterY, *iterZ);
                         if (GLB(&minCost, cost)) {
-                            support = make_pair(*iterY, *iterZ);
+                            support = std::make_pair(*iterY, *iterZ);
                         }
                     }
                 }
@@ -1466,16 +1534,16 @@ void TernaryConstraint::findSupport(T1 getCost, bool functionalY, T2 getFunction
             if (getIndexY != getDACScopeIndex()) {
                 unsigned int yindex = y->toIndex(support.first);
                 if (getIndexX < getIndexZ)
-                    supportY[yindex] = make_pair(*iterX, support.second);
+                    supportY[yindex] = std::make_pair(*iterX, support.second);
                 else
-                    supportY[yindex] = make_pair(support.second, *iterX);
+                    supportY[yindex] = std::make_pair(support.second, *iterX);
             }
             if (getIndexZ != getDACScopeIndex()) {
                 unsigned int zindex = z->toIndex(support.second);
                 if (getIndexX < getIndexY)
-                    supportZ[zindex] = make_pair(*iterX, support.first);
+                    supportZ[zindex] = std::make_pair(*iterX, support.first);
                 else
-                    supportZ[zindex] = make_pair(support.first, *iterX);
+                    supportZ[zindex] = std::make_pair(support.first, *iterX);
             }
         }
     }
@@ -1507,9 +1575,9 @@ void TernaryConstraint::findFullSupport(T1 getCost, T2 getCostXZY, T3 getCostYZX
     bool supportReversed = (getIndexY > getIndexZ);
     for (EnumeratedVariable::iterator iterX = x->begin(); iterX != x->end(); ++iterX) {
         unsigned int xindex = x->toIndex(*iterX);
-        pair<Value, Value> support = (supportReversed) ? make_pair(supportX[xindex].second, supportX[xindex].first) : make_pair(supportX[xindex].first, supportX[xindex].second);
+        pair<Value, Value> support = (supportReversed) ? std::make_pair(supportX[xindex].second, supportX[xindex].first) : std::make_pair(supportX[xindex].first, supportX[xindex].second);
         if (y->cannotbe(support.first) || z->cannotbe(support.second) || getCostWithBinaries(x, y, z, *iterX, support.first, support.second) + y->getCost(support.first) + z->getCost(support.second) > MIN_COST) {
-            support = make_pair(y->getInf(), z->getInf());
+            support = std::make_pair(y->getInf(), z->getInf());
             Cost minCost = MAX_COST;
             if (functionalZ) {
                 for (EnumeratedVariable::iterator iterY = y->begin(); minCost > MIN_COST && iterY != y->end(); ++iterY) {
@@ -1517,7 +1585,7 @@ void TernaryConstraint::findFullSupport(T1 getCost, T2 getCostXZY, T3 getCostYZX
                     if (valZ != WRONG_VAL && z->canbe(valZ)) {
                         Cost cost = getCostWithBinaries(x, y, z, *iterX, *iterY, valZ) + y->getCost(*iterY) + z->getCost(valZ);
                         if (GLB(&minCost, cost)) {
-                            support = make_pair(*iterY, valZ);
+                            support = std::make_pair(*iterY, valZ);
                         }
                     }
                 }
@@ -1527,7 +1595,7 @@ void TernaryConstraint::findFullSupport(T1 getCost, T2 getCostXZY, T3 getCostYZX
                     if (valY != WRONG_VAL && y->canbe(valY)) {
                         Cost cost = getCostWithBinaries(x, y, z, *iterX, valY, *iterZ) + y->getCost(valY) + z->getCost(*iterZ);
                         if (GLB(&minCost, cost)) {
-                            support = make_pair(valY, *iterZ);
+                            support = std::make_pair(valY, *iterZ);
                         }
                     }
                 }
@@ -1536,7 +1604,7 @@ void TernaryConstraint::findFullSupport(T1 getCost, T2 getCostXZY, T3 getCostYZX
                     for (EnumeratedVariable::iterator iterZ = z->begin(); minCost > MIN_COST && iterZ != z->end(); ++iterZ) {
                         Cost cost = getCostWithBinaries(x, y, z, *iterX, *iterY, *iterZ) + y->getCost(*iterY) + z->getCost(*iterZ);
                         if (GLB(&minCost, cost)) {
-                            support = make_pair(*iterY, *iterZ);
+                            support = std::make_pair(*iterY, *iterZ);
                         }
                     }
                 }
@@ -1674,18 +1742,18 @@ void TernaryConstraint::findFullSupport(T1 getCost, T2 getCostXZY, T3 getCostYZX
                     return;
             }
 
-            supportX[xindex] = (supportReversed) ? make_pair(support.second, support.first) : make_pair(support.first, support.second);
+            supportX[xindex] = (supportReversed) ? std::make_pair(support.second, support.first) : std::make_pair(support.first, support.second);
 
             unsigned int yindex = y->toIndex(support.first);
             unsigned int zindex = z->toIndex(support.second);
             if (getIndexX < getIndexZ)
-                supportY[yindex] = make_pair(*iterX, support.second);
+                supportY[yindex] = std::make_pair(*iterX, support.second);
             else
-                supportY[yindex] = make_pair(support.second, *iterX);
+                supportY[yindex] = std::make_pair(support.second, *iterX);
             if (getIndexX < getIndexY)
-                supportZ[zindex] = make_pair(*iterX, support.first);
+                supportZ[zindex] = std::make_pair(*iterX, support.first);
             else
-                supportZ[zindex] = make_pair(support.first, *iterX);
+                supportZ[zindex] = std::make_pair(support.first, *iterX);
         }
     }
     if (supportBroken) {
@@ -1715,9 +1783,7 @@ void TernaryConstraint::projectTernaryBinary(T1 getCost, T2 getCostYZX, T3 addCo
         }
     }
 
-    if (wcsp->getTreeDec()) {
-        yzin->setCluster(getCluster());
-    }
+    assert((yzin == xy || yzin == xz || yzin == yz) && checkTreeDecomposition());
 
     if (flag) {
         if (y->unassigned() && z->unassigned())
@@ -1747,7 +1813,7 @@ bool TernaryConstraint::isEAC(T1 getCostWithBinaries, bool functionalY, T2 getFu
                     Value valZ = getFunctionZ(x, y, a, *iterY);
                     if (valZ != WRONG_VAL && z->canbe(valZ)) {
                         if (getCostWithBinaries(x, y, z, a, *iterY, valZ) + y->getCost(*iterY) + z->getCost(valZ) == MIN_COST) {
-                            supportX[xindex] = make_pair(*iterY, valZ);
+                            supportX[xindex] = std::make_pair(*iterY, valZ);
                             return true;
                         }
                     }
@@ -1757,7 +1823,7 @@ bool TernaryConstraint::isEAC(T1 getCostWithBinaries, bool functionalY, T2 getFu
                     Value valY = getFunctionY(x, z, a, *iterZ);
                     if (valY != WRONG_VAL && y->canbe(valY)) {
                         if (getCostWithBinaries(x, y, z, a, valY, *iterZ) + y->getCost(valY) + z->getCost(*iterZ) == MIN_COST) {
-                            supportX[xindex] = make_pair(valY, *iterZ);
+                            supportX[xindex] = std::make_pair(valY, *iterZ);
                             return true;
                         }
                     }
@@ -1766,7 +1832,7 @@ bool TernaryConstraint::isEAC(T1 getCostWithBinaries, bool functionalY, T2 getFu
                 for (EnumeratedVariable::iterator iterY = y->begin(); iterY != y->end(); ++iterY) {
                     for (EnumeratedVariable::iterator iterZ = z->begin(); iterZ != z->end(); ++iterZ) {
                         if (getCostWithBinaries(x, y, z, a, *iterY, *iterZ) + y->getCost(*iterY) + z->getCost(*iterZ) == MIN_COST) {
-                            supportX[xindex] = make_pair(*iterY, *iterZ);
+                            supportX[xindex] = std::make_pair(*iterY, *iterZ);
                             return true;
                         }
                     }

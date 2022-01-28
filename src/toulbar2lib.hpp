@@ -249,7 +249,7 @@ public:
     virtual int postCliqueConstraint(vector<int>& scope, const string& arguments) = 0;
     virtual int postCliqueConstraint(int* scopeIndex, int arity, istream& file) = 0; /// \deprecated
     virtual int postKnapsackConstraint(vector<int>& scope, const string& arguments, bool isclique = false, bool kp = false) = 0;
-    virtual int postKnapsackConstraint(int* scopeIndex, int arity, istream& file,bool isclique = false, bool kp = false) = 0; /// \deprecated
+    virtual int postKnapsackConstraint(int* scopeIndex, int arity, istream& file, bool isclique = false, bool kp = false) = 0; /// \deprecated
     virtual int postGlobalConstraint(int* scopeIndex, int arity, const string& gcname, istream& file, int* constrcounter = NULL, bool mult = true) = 0; ///< \deprecated Please use the postWxxx methods instead
 
     /// \brief post a soft among cost function
@@ -388,6 +388,9 @@ public:
     virtual void setDACOrder(vector<int>& elimVarOrder) = 0; ///< \brief change DAC order and propagate from scratch
 
     virtual bool isGlobal() = 0; ///< \brief true if there are soft global constraints defined in the problem
+#ifdef ILOGCPLEX
+    virtual bool isPLPS() = 0; ///< \brief true if there are Polytime Linear Projection-Safe global cost functions (slinear)
+#endif
 
     virtual Cost read_wcsp(const char* fileName) = 0; ///< \brief load problem in all format supported by toulbar2. Returns the UB known to the solver before solving (file and command line).
     virtual void read_legacy(const char* fileName) = 0; ///< \brief load problem in wcsp legacy format
@@ -461,6 +464,11 @@ ostream& operator<<(ostream& os, WeightedCSP& wcsp); ///< \see WeightedCSP::prin
 
 class WeightedCSPSolver {
 public:
+#ifdef OPENMPI
+    static const int MASTER = 0;   // Master MPI rank number
+    static const int WORKTAG = 1;   // MPI tag value for still working
+    static const int DIETAG = 2;   // MPI tag value for stop working
+#endif
     static WeightedCSPSolver* makeWeightedCSPSolver(Cost initUpperBound); ///< \brief WeightedCSP Solver factory
 
     virtual ~WeightedCSPSolver() {}

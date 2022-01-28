@@ -11,7 +11,13 @@
 #include <climits>
 #include <cstdlib>
 #include <cstring>
-#include <libgen.h>
+#include "libgen.h"
+
+#ifdef OPENMPI
+#define BOOST_MPI_HOMOGENEOUS
+#include <boost/mpi.hpp>
+namespace mpi = boost::mpi;
+#endif
 
 #ifdef ILOGLUE
 #include <ilsolver/ilosolverint.h>
@@ -25,10 +31,12 @@
 #include <cmath>
 #endif
 
+#include <atomic>
 #include <limits>
 #include <iterator>
 #include <vector>
 #include <map>
+#include <unordered_map>
 #include <sstream>
 #include <set>
 #include <list>
@@ -37,7 +45,17 @@
 #include <functional>
 #include <algorithm>
 #include <numeric>
-using namespace std;
+using std::ostream;
+using std::vector;
+using std::pair;
+
+#include <chrono>
+
+#ifdef OPENMPI
+#include <boost/serialization/vector.hpp>
+#include <boost/serialization/map.hpp>
+namespace serialization = boost::serialization;
+#endif
 
 #ifdef NDEBUG
 #define DEBONLY(x)
@@ -63,19 +81,19 @@ triplet<T1, T2, T3> make_triplet(const T1& m1, const T2& m2, const T3& m3)
 }
 
 template <typename T1, typename T2, typename T3>
-ostream& operator<<(ostream& os, triplet<T1, T2, T3> const& p)
+std::ostream& operator<<(std::ostream& os, triplet<T1, T2, T3> const& p)
 {
     return os << "triplet{" << p.first << "," << p.second << "," << p.third << "}";
 }
 
 template <typename U, typename T>
-ostream& operator<<(ostream& os, pair<U, T> const& p)
+std::ostream& operator<<(std::ostream& os, std::pair<U, T> const& p)
 {
     return os << "pair{" << p.first << "," << p.second << "}";
 }
 
 template <typename T>
-ostream& operator<<(ostream& os, vector<T> const& v)
+std::ostream& operator<<(std::ostream& os, vector<T> const& v)
 {
     os << "v(sz=" << v.size() << ")[";
     bool first = true;

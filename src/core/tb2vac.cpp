@@ -13,7 +13,7 @@
 #include <math.h> /* atan2 */
 #include "search/tb2clusters.hpp"
 #include "tb2vacutils.hpp"
-#define PI 3.14159265
+#define PI 3.1415926535897932384626433832795
 
 class tVACStat {
 public:
@@ -329,7 +329,7 @@ bool VACExtension::propagate()
                     double ratio = (ToulBar2::RASPSnbStrictACVariables == 0) ? 0.0000000001 : (((double)ToulBar2::RASPSnbStrictACVariables / (double)wcsp->numberOfVariables()) / (double)itThreshold);
                     if (ToulBar2::verbose >= 0) {
                         cout << std::fixed << std::setprecision(7);
-                        cout << "Threshold: " << itThreshold << " NbAssignedVar: " << ToulBar2::RASPSnbStrictACVariables << " Ratio: " << ratio << " SumOfDomainSize: "<< wcsp->getDomainSizeSum() << endl;
+                        cout << "Threshold: " << itThreshold << " NbAssignedVar: " << ToulBar2::RASPSnbStrictACVariables << " Ratio: " << ratio << " SumOfDomainSize: " << wcsp->getDomainSizeSum() << endl;
                         cout << std::fixed << std::setprecision(DECIMAL_POINT);
                     }
                     ToulBar2::RASPSitThresholds.push_back(std::make_pair(itThreshold, ratio));
@@ -472,9 +472,9 @@ bool VACExtension::propagate()
     if (ToulBar2::vacValueHeuristic && acSupportOK && isVAC()) {
         // update current unary support if possible && needed
         for (vector<tuple<VACVariable*, Value, bool>>::iterator iter = acSupport.begin(); iter != acSupport.end(); ++iter) {
-            VACVariable* x = get<0>(*iter);
-            Value val = get<1>(*iter);
-            bool vacintegral = get<2>(*iter);
+            VACVariable* x = std::get<0>(*iter);
+            Value val = std::get<1>(*iter);
+            bool vacintegral = std::get<2>(*iter);
             if (x->canbe(val)) {
                 if (x->getCost(val) == MIN_COST) {
                     if (ToulBar2::verbose > 0 && (x->getSupport() != val || (vacintegral && !x->isFullEAC())))
@@ -533,6 +533,8 @@ void VACExtension::enforcePass1()
     VACBinaryConstraint* cij;
 
     while (!VAC.empty()) {
+        if (ToulBar2::interrupted)
+            throw TimeOut();
         xj = (VACVariable*)VAC.pop_first();
         for (EnumeratedVariable::iterator it = xj->begin(); it != xj->end(); ++it) {
             if (xj->getVACCost(*it) > MIN_COST)
