@@ -66,5 +66,6 @@ RUN CMDFILE=/WORK.sh \
 && echo "ln -s /toulbar2/pytoulbar2 /WORK/pytoulbar2"           >> $CMDFILE \
 && echo "cd /WORK"                                              >> $CMDFILE
 
+
 ###############################################################################
 
