@@ -24,7 +24,7 @@
 #
 ###############################################################################
 
-FROM ubuntu:20.04
+FROM debian:buster-slim
 
 RUN apt-get update -yq \
 && apt-get install git-core -y \
@@ -33,20 +33,20 @@ RUN apt-get update -yq \
 && apt-get install python3-pip -y \
 && apt-get clean -y
 
-RUN pip3 install --upgrade pip wheel setuptools \
-&& pip3 install --upgrade pytoulbar2 \
-&& pip3 install --upgrade numpy \
-&& pip3 install --upgrade nbconvert \
-&& pip3 install --upgrade more-itertools \
-&& pip3 install --upgrade matplotlib \
-&& pip3 install --upgrade pandas \
-&& pip3 install --upgrade tensorflow \
-&& pip3 install --upgrade keras \
-&& pip3 install --upgrade sklearn \
-&& pip3 install --upgrade imutils \
-&& pip3 install --upgrade opencv-python \
-&& pip3 install --upgrade opencv-python-headless \
-&& pip3 install --upgrade scikit-image
+RUN python3 -m pip install --upgrade pip wheel setuptools \
+&& python3 -m pip install --upgrade pytoulbar2 \
+&& python3 -m pip install --upgrade numpy \
+&& python3 -m pip install --upgrade nbconvert \
+&& python3 -m pip install --upgrade more-itertools \
+&& python3 -m pip install --upgrade matplotlib \
+&& python3 -m pip install --upgrade pandas \
+&& python3 -m pip install --upgrade tensorflow \
+&& python3 -m pip install --upgrade keras \
+&& python3 -m pip install --upgrade sklearn \
+&& python3 -m pip install --upgrade imutils \
+&& python3 -m pip install --upgrade opencv-python \
+&& python3 -m pip install --upgrade opencv-python-headless \
+&& python3 -m pip install --upgrade scikit-image
 
 RUN mkdir /WORK
 
