@@ -1,0 +1,296 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Airplane landing problem &mdash; toulbar2 1.0.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/toulbar2.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/toulbar2.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Warehouse location problem" href="wlp.html" />
+    <link rel="prev" title="Block modeling problem" href="bmp.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> toulbar2
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../presentation.html">Presentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../downloads.html">Downloads</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../documentation.html">Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../publications.html">Publications</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../tutorials.html">Tutorials</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="wnqp.html">Weighted n-queen problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wlsp.html">Weighted latin square problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rlfap.html">Radio link frequency assignment problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fapwp.html">Frequency assignment problem with polarization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="medp.html">Mendelian error detection problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bmp.html">Block modeling problem</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Airplane landing problem</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#brief-description-from-choco-solver">Brief description (from CHOCO-SOLVER)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#cfn-model">CFN model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#data">Data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#python-model-and-solve">Python model and solve</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="wlp.html">Warehouse location problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="spp.html">Square packing problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sspp.html">Square soft packing problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ltps.html">Learning to play the Sudoku</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rccs.html">Renault car configuration system: learning user preferences</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">toulbar2</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+<div class=toulbar2header>
+
+  <div class="toulbar2logo">
+
+    <h1>toulbar2</h1>
+    <h2>An exact solver for cost function networks</h2>
+
+  </div>
+
+  <div class=toulbar2headerline>
+
+    <a href=../presentation.html>Presentation</a> |
+    <a href=../downloads.html>Downloads</a> |
+    <a href=../documentation.html>Documentation</a> |
+    <a href=../publications.html>Publications</a> |
+    <a href=../tutorials.html>Tutorials</a>
+
+  </div>
+
+</div>
+
+
+
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="airplane-landing-problem">
+<span id="alp"></span><h1>Airplane landing problem<a class="headerlink" href="#airplane-landing-problem" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="brief-description-from-choco-solver">
+<h2>Brief description (from <a class="reference external" href="https://choco-solver.org/tutos/aircraft-landing-problem">CHOCO-SOLVER</a>)<a class="headerlink" href="#brief-description-from-choco-solver" title="Permalink to this headline">¶</a></h2>
+<p>Given a set of planes and runways, the objective is to minimize the total weighted deviation from the target landing time for each plane. We consider only a single runway.
+There are costs associated with landing either earlier or later than a target landing time for each plane.
+Each plane has to land within its predetermined time window such that separation times between all pairs of planes are satisfied.
+<a class="reference external" href="https://doi.org/10.1287/trsc.34.2.180.12302">J.E. Beasley, M. Krishnamoorthy, Y.M. Sharaiha and D. Abramson. Scheduling aircraft landings - the static case. Transportation Science, vol.34, 2000</a>.</p>
+</div>
+<div class="section" id="cfn-model">
+<h2>CFN model<a class="headerlink" href="#cfn-model" title="Permalink to this headline">¶</a></h2>
+<p>We create N variables for every plane landing time. Binary cost functions express separation times between pairs of planes. Unary cost functions represent the weighted deviation for each plane.</p>
+</div>
+<div class="section" id="data">
+<h2>Data<a class="headerlink" href="#data" title="Permalink to this headline">¶</a></h2>
+<p>Original data files can be download from the cost function library <a class="reference external" href="https://forgemia.inra.fr/thomas.schiex/cost-function-library/tree/master/crafted/airland/data">airland</a>. Their format is described <a class="reference external" href="http://people.brunel.ac.uk/~mastjjb/jeb/orlib/airlandinfo.html">here</a>. You can try a small example <a class="reference download internal" download="" href="../_downloads/4a2573b8602ce5a8a5f655cc9fd88beb/airland1.txt"><code class="xref download docutils literal notranslate"><span class="pre">airland1.txt</span></code></a> with optimum value equal to 700.</p>
+</div>
+<div class="section" id="python-model-and-solve">
+<h2>Python model and solve<a class="headerlink" href="#python-model-and-solve" title="Permalink to this headline">¶</a></h2>
+<p>The following code uses the pytoulbar2 module to generate the cost function network and solve it (e.g. “python3 airland.py airland1.txt”). Compile toulbar2 with “cmake -DPYTB2=ON . ; make” and copy the resulting module in pytoulbar2 folder “cp lib/Linux/pytb2.cpython* pytoulbar2”.</p>
+<p><a class="reference download internal" download="" href="../_downloads/04f54612755ab675db9e72a9205145f0/airland.py"><code class="xref download docutils literal notranslate"><span class="pre">airland.py</span></code></a></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">pytoulbar2</span>
+
+<span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+
+<span class="n">tokens</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">tokens</span> <span class="o">+=</span> <span class="n">l</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+
+<span class="n">pos</span> <span class="o">=</span> <span class="mi">0</span>
+
+<span class="k">def</span> <span class="nf">token</span><span class="p">():</span>
+   <span class="k">global</span> <span class="n">pos</span><span class="p">,</span> <span class="n">tokens</span>
+   <span class="k">if</span> <span class="p">(</span><span class="n">pos</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">tokens</span><span class="p">)):</span>
+      <span class="k">return</span> <span class="kc">None</span>
+   <span class="n">s</span> <span class="o">=</span> <span class="n">tokens</span><span class="p">[</span><span class="n">pos</span><span class="p">]</span>
+   <span class="n">pos</span> <span class="o">+=</span> <span class="mi">1</span>
+   <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">s</span><span class="p">))</span> 
+
+<span class="n">N</span> <span class="o">=</span> <span class="n">token</span><span class="p">()</span>
+<span class="n">token</span><span class="p">()</span> <span class="c1"># skip freeze time</span>
+
+<span class="n">LT</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">PC</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">ST</span> <span class="o">=</span> <span class="p">[]</span>
+
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
+   <span class="n">token</span><span class="p">()</span>  <span class="c1"># skip appearance time</span>
+<span class="c1"># Times per plane: {earliest landing time, target landing time, latest landing time}</span>
+   <span class="n">LT</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">token</span><span class="p">(),</span> <span class="n">token</span><span class="p">(),</span> <span class="n">token</span><span class="p">()])</span>
+
+<span class="c1"># Penalty cost per unit of time per plane:</span>
+<span class="c1"># [for landing before target, after target]</span>
+   <span class="n">PC</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">token</span><span class="p">(),</span> <span class="n">token</span><span class="p">()])</span>
+
+<span class="c1"># Separation time required after i lands before j can land</span>
+   <span class="n">ST</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">token</span><span class="p">()</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">)])</span>
+
+<span class="n">top</span> <span class="o">=</span> <span class="mi">99999</span>
+
+<span class="n">Problem</span> <span class="o">=</span> <span class="n">pytoulbar2</span><span class="o">.</span><span class="n">CFN</span><span class="p">(</span><span class="n">top</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
+    <span class="n">Problem</span><span class="o">.</span><span class="n">AddVariable</span><span class="p">(</span><span class="s1">&#39;x&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">),</span> <span class="nb">range</span><span class="p">(</span><span class="n">LT</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span><span class="n">LT</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span>
+
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
+    <span class="n">Problem</span><span class="o">.</span><span class="n">AddFunction</span><span class="p">([</span><span class="n">i</span><span class="p">],</span> <span class="p">[</span><span class="n">PC</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="nb">abs</span><span class="p">(</span><span class="n">a</span><span class="o">-</span><span class="n">LT</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">LT</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">LT</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span><span class="o">+</span><span class="mi">1</span><span class="p">)])</span>
+
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="n">N</span><span class="p">):</span>
+        <span class="n">Problem</span><span class="o">.</span><span class="n">AddFunction</span><span class="p">([</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">],</span> <span class="p">[</span><span class="n">top</span><span class="o">*</span><span class="p">(</span><span class="n">a</span><span class="o">+</span><span class="n">ST</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span><span class="o">&gt;</span><span class="n">b</span> <span class="ow">and</span> <span class="n">b</span><span class="o">+</span><span class="n">ST</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="n">i</span><span class="p">]</span><span class="o">&gt;</span><span class="n">a</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">LT</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">LT</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">LT</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">LT</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span><span class="o">+</span><span class="mi">1</span><span class="p">)])</span>
+
+<span class="n">Problem</span><span class="o">.</span><span class="n">Dump</span><span class="p">(</span><span class="s1">&#39;airplane.cfn&#39;</span><span class="p">)</span>
+<span class="n">Problem</span><span class="o">.</span><span class="n">NoPreprocessing</span><span class="p">()</span>
+<span class="n">Problem</span><span class="o">.</span><span class="n">Solve</span><span class="p">()</span>
+
+</pre></div>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="wlp.html" class="btn btn-neutral float-right" title="Warehouse location problem" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="bmp.html" class="btn btn-neutral float-left" title="Block modeling problem" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2022, INRAE
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -1,0 +1,515 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Block modeling problem &mdash; toulbar2 1.0.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/toulbar2.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/toulbar2.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Airplane landing problem" href="alp.html" />
+    <link rel="prev" title="Mendelian error detection problem" href="medp.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> toulbar2
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../presentation.html">Presentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../downloads.html">Downloads</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../documentation.html">Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../publications.html">Publications</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../tutorials.html">Tutorials</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="wnqp.html">Weighted n-queen problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wlsp.html">Weighted latin square problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rlfap.html">Radio link frequency assignment problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fapwp.html">Frequency assignment problem with polarization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="medp.html">Mendelian error detection problem</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Block modeling problem</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#brief-description">Brief description</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#cfn-model">CFN model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#data">Data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#python-model-generator">Python model generator</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="alp.html">Airplane landing problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wlp.html">Warehouse location problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="spp.html">Square packing problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sspp.html">Square soft packing problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ltps.html">Learning to play the Sudoku</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rccs.html">Renault car configuration system: learning user preferences</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">toulbar2</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+<div class=toulbar2header>
+
+  <div class="toulbar2logo">
+
+    <h1>toulbar2</h1>
+    <h2>An exact solver for cost function networks</h2>
+
+  </div>
+
+  <div class=toulbar2headerline>
+
+    <a href=../presentation.html>Presentation</a> |
+    <a href=../downloads.html>Downloads</a> |
+    <a href=../documentation.html>Documentation</a> |
+    <a href=../publications.html>Publications</a> |
+    <a href=../tutorials.html>Tutorials</a>
+
+  </div>
+
+</div>
+
+
+
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="block-modeling-problem">
+<span id="bmp"></span><h1>Block modeling problem<a class="headerlink" href="#block-modeling-problem" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="brief-description">
+<h2>Brief description<a class="headerlink" href="#brief-description" title="Permalink to this headline">¶</a></h2>
+<p>This is a clustering problem, occuring in social network analysis. The problem is to divide a given graph G into k clusters such that the interactions between clusters can be summarized by a k*k 0/1 matrix M: if M[i,j]=1 then all the nodes in cluster i should be connected to all the nodes in cluster j in G, else if M[i,j]=0 then there should be no edge between the nodes in G. The goal is to find a k-clustering and the associated matrix M minimizing the number of erroneous edges.
+<a class="reference external" href="https://www.jair.org/index.php/jair/article/download/12280/26656">A Mattenet, I Davidson, S Nijssen, P Schaus. Generic Constraint-Based Block Modeling Using Constraint Programming. CP 2019, pp656-673, Stamford, CT, USA</a>.</p>
+</div>
+<div class="section" id="cfn-model">
+<h2>CFN model<a class="headerlink" href="#cfn-model" title="Permalink to this headline">¶</a></h2>
+<p>We create N variables for every node of the graph with domain size k. We add k*k Boolean variables for representing M. For all triplets of two nodes u, v, and one matrix cell M[i,j], we have a ternary cost function which returns a cost of 1 if node u is assigned to cluster i, v to j, and M[i,j]=1 but (u,v) is not in G, or M[i,j]=0 and (u,v) in G. In order to break symmetries, we constrain the first k-1 node variables to be assigned to cluster index less than or equal to their index</p>
+</div>
+<div class="section" id="data">
+<h2>Data<a class="headerlink" href="#data" title="Permalink to this headline">¶</a></h2>
+<p>You can try a small example <a class="reference download internal" download="" href="../_downloads/22fd5868876cf1fffc9df08e4ac3c106/simple.mat"><code class="xref download docutils literal notranslate"><span class="pre">simple.mat</span></code></a> with optimum value equal to 0 for 3 clusters.</p>
+<p>Perfect solution for the small example with k=3 (Mattenet et al, CP 2019)</p>
+<a class="reference internal image-reference" href="../_images/simple.png"><img alt="../_images/simple.png" src="../_images/simple.png" style="height: 250px;" /></a>
+<p>More examples with 3 clusters (Stochastic Block Models <a class="reference external" href="https://doi.org/10.1371/journal.pone.0215296">[Funke and Becker, Plos One 2019]</a>)</p>
+<a class="reference internal image-reference" href="../_images/SBM.png"><img alt="../_images/SBM.png" src="../_images/SBM.png" style="height: 250px;" /></a>
+<p>See other examples, such as <a class="reference external" href="https://www.ifip.com/Partitioning_Political_Actor.html">PoliticalActor</a> and more, here :
+<a class="reference download internal" download="" href="../_downloads/e291e58626d7e4435375fbcb7d65169d/100.mat"><code class="xref download docutils literal notranslate"><span class="pre">100.mat</span></code></a> |
+<a class="reference download internal" download="" href="../_downloads/3619b095fac6904258ecd7287eefbc01/150.mat"><code class="xref download docutils literal notranslate"><span class="pre">150.mat</span></code></a> |
+<a class="reference download internal" download="" href="../_downloads/b2976e2c16c9025e48237cb4c3a3ae97/200.mat"><code class="xref download docutils literal notranslate"><span class="pre">200.mat</span></code></a> |
+<a class="reference download internal" download="" href="../_downloads/14819af564311f48cd939ccc4999f210/30.mat"><code class="xref download docutils literal notranslate"><span class="pre">30.mat</span></code></a> |
+<a class="reference download internal" download="" href="../_downloads/7ebb1a9c7b2e8294388312d92aff4223/50.mat"><code class="xref download docutils literal notranslate"><span class="pre">50.mat</span></code></a> |
+<a class="reference download internal" download="" href="../_downloads/6700121972bce2fdd0b0c538aabe1feb/hartford_drug.mat"><code class="xref download docutils literal notranslate"><span class="pre">hartford_drug.mat</span></code></a> |
+<a class="reference download internal" download="" href="../_downloads/5d5dc3fa421387fd557e597640707296/kansas.mat"><code class="xref download docutils literal notranslate"><span class="pre">kansas.mat</span></code></a> |
+<a class="reference download internal" download="" href="../_downloads/6f613e667075a486c0ea60b5ae35a695/politicalactor.mat"><code class="xref download docutils literal notranslate"><span class="pre">politicalactor.mat</span></code></a> |
+<a class="reference download internal" download="" href="../_downloads/0ea8e58c426735da2460a49f49808a47/sharpstone.mat"><code class="xref download docutils literal notranslate"><span class="pre">sharpstone.mat</span></code></a> |
+<a class="reference download internal" download="" href="../_downloads/c96b6b22ef85d3f6c3b6db78749eaa26/transatlantic.mat"><code class="xref download docutils literal notranslate"><span class="pre">transatlantic.mat</span></code></a>.</p>
+</div>
+<div class="section" id="python-model-generator">
+<h2>Python model generator<a class="headerlink" href="#python-model-generator" title="Permalink to this headline">¶</a></h2>
+<p>The following code using python3 interpreter will generate the corresponding cost function network (e.g. “python3 blockmodel.py simple.mat 3”). Download the AWK script <a class="reference download internal" download="" href="../_downloads/f81c15dc1aba0b40af7d2fce8ecaf5e1/sol2block.awk"><code class="xref download docutils literal notranslate"><span class="pre">sol2block.awk</span></code></a> to pretty print the results (e.g., “python3 blockmodel.py simple.mat 3 | toulbar2 –stdin=cfn -s=3 | awk -f ./sol2block.awk”).</p>
+<p><a class="reference download internal" download="" href="../_downloads/017d06e9ad8550ac1c99ebde22cfd6c7/blockmodel.py"><code class="xref download docutils literal notranslate"><span class="pre">blockmodel.py</span></code></a></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">sys</span>
+
+<span class="k">def</span> <span class="nf">flatten</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">x</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">el</span><span class="p">,</span> <span class="s2">&quot;__iter__&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">el</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">el</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">el</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="n">result</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">flatten</span><span class="p">(</span><span class="n">el</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">el</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">result</span>
+
+<span class="k">def</span> <span class="nf">cfn</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="n">isMinimization</span><span class="p">,</span> <span class="n">initPrimalBound</span><span class="p">,</span> <span class="n">floatPrecision</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="n">globals_key_order</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;rhs&quot;</span><span class="p">,</span> <span class="s2">&quot;capacity&quot;</span><span class="p">,</span> <span class="s2">&quot;weights&quot;</span><span class="p">,</span> <span class="s2">&quot;weightedvalues&quot;</span><span class="p">,</span> <span class="s2">&quot;metric&quot;</span><span class="p">,</span> <span class="s2">&quot;cost&quot;</span><span class="p">,</span> <span class="s2">&quot;bounds&quot;</span><span class="p">,</span> <span class="s2">&quot;vars1&quot;</span><span class="p">,</span> <span class="s2">&quot;vars2&quot;</span><span class="p">,</span> <span class="s2">&quot;nb_states&quot;</span><span class="p">,</span> <span class="s2">&quot;starts&quot;</span><span class="p">,</span> <span class="s2">&quot;ends&quot;</span><span class="p">,</span> <span class="s2">&quot;transitions&quot;</span><span class="p">,</span> <span class="s2">&quot;nb_symbols&quot;</span><span class="p">,</span> <span class="s2">&quot;nb_values&quot;</span><span class="p">,</span> <span class="s2">&quot;start&quot;</span><span class="p">,</span> <span class="s2">&quot;terminals&quot;</span><span class="p">,</span> <span class="s2">&quot;non_terminals&quot;</span><span class="p">,</span> <span class="s2">&quot;min&quot;</span><span class="p">,</span> <span class="s2">&quot;max&quot;</span><span class="p">,</span> <span class="s2">&quot;values&quot;</span><span class="p">,</span> <span class="s2">&quot;defaultcost&quot;</span><span class="p">,</span> <span class="s2">&quot;tuples&quot;</span><span class="p">,</span> <span class="s2">&quot;comparator&quot;</span><span class="p">,</span> <span class="s2">&quot;to&quot;</span><span class="p">]</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;{&#39;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">problem: { &quot;name&quot;: &quot;</span><span class="si">%s</span><span class="s1">&quot;, &quot;mustbe&quot;: &quot;</span><span class="si">%s%.*f</span><span class="s1">&quot; },&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">problem</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">],</span> <span class="s2">&quot;&lt;&quot;</span> <span class="k">if</span> <span class="p">(</span><span class="n">isMinimization</span><span class="p">)</span> <span class="k">else</span> <span class="s2">&quot;&gt;&quot;</span><span class="p">,</span> <span class="n">floatPrecision</span><span class="p">,</span> <span class="n">initPrimalBound</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">variables: {&#39;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">e</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">flatten</span><span class="p">(</span><span class="n">problem</span><span class="p">[</span><span class="s2">&quot;variables&quot;</span><span class="p">])):</span>
+        <span class="k">if</span> <span class="n">i</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;, &#39;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;&quot;</span><span class="si">%s</span><span class="s1">&quot;:&#39;</span> <span class="o">%</span> <span class="n">e</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">e</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39; </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">e</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[&#39;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">j</span><span class="p">,</span><span class="n">a</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">e</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+                <span class="k">if</span> <span class="n">j</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;, &#39;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;&quot;</span><span class="si">%s</span><span class="s1">&quot;&#39;</span> <span class="o">%</span> <span class="n">a</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;]&#39;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;},&#39;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span> <span class="s1">&#39;</span><span class="se">\t</span><span class="s1">functions: {&#39;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">e</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">flatten</span><span class="p">(</span><span class="n">problem</span><span class="p">[</span><span class="s2">&quot;functions&quot;</span><span class="p">])):</span>
+        <span class="k">if</span> <span class="n">i</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t\t</span><span class="s1">&quot;</span><span class="si">%s</span><span class="s1">&quot;: {scope: [&#39;</span> <span class="o">%</span> <span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">),</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t\t</span><span class="s1">{scope: [&#39;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="n">scope</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">j</span><span class="p">,</span><span class="n">x</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;scope&quot;</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">x</span> <span class="ow">in</span> <span class="n">scope</span><span class="p">):</span> <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">Error: scope of function &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39; with the same variable twice is forbidden!&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">j</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;, &#39;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;&quot;</span><span class="si">%s</span><span class="s1">&quot;&#39;</span> <span class="o">%</span> <span class="n">x</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+            <span class="n">scope</span><span class="p">[</span><span class="n">x</span><span class="p">]</span><span class="o">=</span><span class="n">j</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;], &#39;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;&quot;type:&quot; </span><span class="si">%s</span><span class="s1">, &#39;</span> <span class="o">%</span> <span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">),</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;params&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;params&quot;</span><span class="p">),</span> <span class="nb">dict</span><span class="p">):</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;&quot;params&quot;: {&#39;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+                <span class="n">first</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">globals_key_order</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;params&quot;</span><span class="p">):</span>
+                        <span class="k">if</span> <span class="ow">not</span> <span class="n">first</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;, &#39;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;params&quot;</span><span class="p">)[</span><span class="n">key</span><span class="p">],</span> <span class="nb">str</span><span class="p">):</span> <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;&quot;</span><span class="si">%s</span><span class="s1">&quot;: &quot;</span><span class="si">%s</span><span class="s1">&quot;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">key</span><span class="p">),</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;params&quot;</span><span class="p">)[</span><span class="n">key</span><span class="p">])</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;&#39;&quot;</span><span class="p">,</span> <span class="s1">&#39;&quot;&#39;</span><span class="p">)),</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+                        <span class="k">else</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;&quot;</span><span class="si">%s</span><span class="s1">&quot;: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">key</span><span class="p">),</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;params&quot;</span><span class="p">)[</span><span class="n">key</span><span class="p">])</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;&#39;&quot;</span><span class="p">,</span> <span class="s1">&#39;&quot;&#39;</span><span class="p">)),</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+                        <span class="n">first</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="nb">print</span> <span class="p">(</span><span class="s1">&#39;}&#39;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;&quot;params&quot;: </span><span class="si">%s</span><span class="s1">, &#39;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;params&quot;</span><span class="p">))</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;&#39;&quot;</span><span class="p">,</span><span class="s1">&#39;&quot;&#39;</span><span class="p">),</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;defaultcost&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;&quot;defaultcost:&quot; </span><span class="si">%s</span><span class="s1">, &#39;</span> <span class="o">%</span> <span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;defaultcost&quot;</span><span class="p">),</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;costs&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;&quot;costs&quot;: &#39;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;costs&quot;</span><span class="p">),</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;&quot;</span><span class="si">%s</span><span class="s1">&quot;&#39;</span> <span class="o">%</span> <span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;costs&quot;</span><span class="p">),</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="c1"># reuse future cost function by giving its name here</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[&#39;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">j</span><span class="p">,</span><span class="n">c</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;costs&quot;</span><span class="p">)):</span>
+                    <span class="k">if</span> <span class="n">j</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;, &#39;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">c</span><span class="o">.</span><span class="n">isdigit</span><span class="p">():</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;&quot;</span><span class="si">%s</span><span class="s1">&quot;&#39;</span> <span class="o">%</span> <span class="n">c</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">c</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;]&#39;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;}&#39;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;}</span><span class="se">\n</span><span class="s1">}&#39;</span><span class="p">)</span>
+
+<span class="k">class</span> <span class="nc">Data</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">matrix</span> <span class="o">=</span> <span class="p">[[</span><span class="nb">int</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">l</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">)]</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">top</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">n</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">n</span>
+
+<span class="k">def</span> <span class="nf">model</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">K</span><span class="p">):</span>
+    <span class="n">Var</span> <span class="o">=</span> <span class="p">[(</span><span class="nb">chr</span><span class="p">(</span><span class="mi">65</span> <span class="o">+</span> <span class="n">i</span><span class="p">)</span> <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">n</span> <span class="o">&lt;</span> <span class="mi">28</span> <span class="k">else</span> <span class="s2">&quot;x&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">))</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">n</span><span class="p">)]</span> <span class="c1"># Political actor or any instance</span>
+<span class="c1">#    Var = [&quot;ron&quot;,&quot;tom&quot;,&quot;frank&quot;,&quot;boyd&quot;,&quot;tim&quot;,&quot;john&quot;,&quot;jeff&quot;,&quot;jay&quot;,&quot;sandy&quot;,&quot;jerry&quot;,&quot;darrin&quot;,&quot;ben&quot;,&quot;arnie&quot;] # Transatlantic</span>
+<span class="c1">#    Var = [&quot;justin&quot;,&quot;harry&quot;,&quot;whit&quot;,&quot;brian&quot;,&quot;paul&quot;,&quot;ian&quot;,&quot;mike&quot;,&quot;jim&quot;,&quot;dan&quot;,&quot;ray&quot;,&quot;cliff&quot;,&quot;mason&quot;,&quot;roy&quot;] # Sharpstone</span>
+<span class="c1">#    Var = [&quot;Sherrif&quot;,&quot;CivilDef&quot;,&quot;Coroner&quot;,&quot;Attorney&quot;,&quot;HighwayP&quot;,&quot;ParksRes&quot;,&quot;GameFish&quot;,&quot;KansasDOT&quot;,&quot;ArmyCorps&quot;,&quot;ArmyReserve&quot;,&quot;CrableAmb&quot;,&quot;FrankCoAmb&quot;,&quot;LeeRescue&quot;,&quot;Shawney&quot;,&quot;BurlPolice&quot;,&quot;LyndPolice&quot;,&quot;RedCross&quot;,&quot;TopekaFD&quot;,&quot;CarbFD&quot;,&quot;TopekaRBW&quot;] # Kansas</span>
+    <span class="n">BlockModeling</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;BlockModel_N&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">n</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;_K&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">K</span><span class="p">),</span>
+        <span class="s2">&quot;variables&quot;</span><span class="p">:</span> <span class="p">[[(</span><span class="s2">&quot;M_&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">u</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;_&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">v</span><span class="p">),</span> <span class="mi">2</span><span class="p">)</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">K</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">K</span><span class="p">)],</span>
+                      <span class="p">[(</span><span class="n">Var</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">K</span><span class="p">)</span>  <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">n</span><span class="p">)]],</span>
+        <span class="s2">&quot;functions&quot;</span><span class="p">:</span>
+            <span class="p">[</span>
+                <span class="c1"># objective function</span>
+                <span class="p">[{</span><span class="s2">&quot;scope&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;M_&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">u</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;_&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">v</span><span class="p">),</span> <span class="n">Var</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">Var</span><span class="p">[</span><span class="n">j</span><span class="p">]],</span>
+                  <span class="s2">&quot;costs&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span> <span class="k">if</span> <span class="p">(</span><span class="n">u</span> <span class="o">==</span> <span class="n">k</span> <span class="ow">and</span> <span class="n">v</span> <span class="o">==</span> <span class="n">l</span> <span class="ow">and</span> <span class="n">data</span><span class="o">.</span><span class="n">matrix</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span> <span class="o">!=</span> <span class="n">m</span><span class="p">)</span>
+                            <span class="k">else</span> <span class="mi">0</span>
+                            <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+                            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">K</span><span class="p">)</span>
+                            <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">K</span><span class="p">)]}</span>
+                 <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">K</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">K</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">n</span><span class="p">)</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">n</span><span class="p">)</span> <span class="k">if</span> <span class="n">i</span> <span class="o">!=</span> <span class="n">j</span><span class="p">],</span>
+
+                <span class="c1"># self-loops</span>
+                <span class="p">[{</span><span class="s2">&quot;scope&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;M_&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">u</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;_&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">u</span><span class="p">),</span> <span class="n">Var</span><span class="p">[</span><span class="n">i</span><span class="p">]],</span>
+                  <span class="s2">&quot;costs&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span> <span class="k">if</span> <span class="p">(</span><span class="n">u</span> <span class="o">==</span> <span class="n">k</span> <span class="ow">and</span> <span class="n">data</span><span class="o">.</span><span class="n">matrix</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">i</span><span class="p">]</span> <span class="o">!=</span> <span class="n">m</span><span class="p">)</span>
+                            <span class="k">else</span> <span class="mi">0</span>
+                            <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+                            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">K</span><span class="p">)]}</span>
+                 <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">K</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">n</span><span class="p">)],</span>
+
+                <span class="c1"># breaking partial symmetries by fixing first (K-1) domain variables to be assigned to cluster less than or equal to their index</span>
+                <span class="p">[{</span><span class="s2">&quot;scope&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">Var</span><span class="p">[</span><span class="n">l</span><span class="p">]],</span>
+                 <span class="s2">&quot;costs&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">data</span><span class="o">.</span><span class="n">top</span> <span class="k">if</span> <span class="n">k</span> <span class="o">&gt;</span> <span class="n">l</span> <span class="k">else</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">K</span><span class="p">)]}</span>
+                 <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">K</span><span class="o">-</span><span class="mi">1</span><span class="p">)]</span>
+            <span class="p">]</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="n">BlockModeling</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="c1"># read parameters</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span> <span class="n">exit</span><span class="p">(</span><span class="s1">&#39;Command line argument is problem data filename and number of blocks&#39;</span><span class="p">)</span>
+    <span class="n">K</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">Data</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">K</span><span class="p">)</span>
+    <span class="c1"># dump problem into JSON .cfn format for minimization by toulbar2 solver</span>
+    <span class="n">cfn</span><span class="p">(</span><span class="n">model</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">K</span><span class="p">),</span> <span class="kc">True</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="n">top</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>We improve the previous model by sorting node variables by decreasing out degree and removing the lower triangular matrix of M if the input graph is undirected (symmetric adjacency matrix).</p>
+<p><a class="reference download internal" download="" href="../_downloads/47a470c8325d206e72f5254cf639f11b/blockmodel2.py"><code class="xref download docutils literal notranslate"><span class="pre">blockmodel2.py</span></code></a></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>
+<span class="kn">import</span> <span class="nn">sys</span>
+
+<span class="k">def</span> <span class="nf">flatten</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">x</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">el</span><span class="p">,</span> <span class="s2">&quot;__iter__&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">el</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">el</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">el</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="n">result</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">flatten</span><span class="p">(</span><span class="n">el</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">el</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">result</span>
+
+<span class="k">def</span> <span class="nf">cfn</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="n">isMinimization</span><span class="p">,</span> <span class="n">initPrimalBound</span><span class="p">,</span> <span class="n">floatPrecision</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="n">globals_key_order</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;rhs&quot;</span><span class="p">,</span> <span class="s2">&quot;capacity&quot;</span><span class="p">,</span> <span class="s2">&quot;weights&quot;</span><span class="p">,</span> <span class="s2">&quot;weightedvalues&quot;</span><span class="p">,</span> <span class="s2">&quot;metric&quot;</span><span class="p">,</span> <span class="s2">&quot;cost&quot;</span><span class="p">,</span> <span class="s2">&quot;bounds&quot;</span><span class="p">,</span> <span class="s2">&quot;vars1&quot;</span><span class="p">,</span> <span class="s2">&quot;vars2&quot;</span><span class="p">,</span> <span class="s2">&quot;nb_states&quot;</span><span class="p">,</span> <span class="s2">&quot;starts&quot;</span><span class="p">,</span> <span class="s2">&quot;ends&quot;</span><span class="p">,</span> <span class="s2">&quot;transitions&quot;</span><span class="p">,</span> <span class="s2">&quot;nb_symbols&quot;</span><span class="p">,</span> <span class="s2">&quot;nb_values&quot;</span><span class="p">,</span> <span class="s2">&quot;start&quot;</span><span class="p">,</span> <span class="s2">&quot;terminals&quot;</span><span class="p">,</span> <span class="s2">&quot;non_terminals&quot;</span><span class="p">,</span> <span class="s2">&quot;min&quot;</span><span class="p">,</span> <span class="s2">&quot;max&quot;</span><span class="p">,</span> <span class="s2">&quot;values&quot;</span><span class="p">,</span> <span class="s2">&quot;defaultcost&quot;</span><span class="p">,</span> <span class="s2">&quot;tuples&quot;</span><span class="p">,</span> <span class="s2">&quot;comparator&quot;</span><span class="p">,</span> <span class="s2">&quot;to&quot;</span><span class="p">]</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;{&#39;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">problem: { &quot;name&quot;: &quot;</span><span class="si">%s</span><span class="s1">&quot;, &quot;mustbe&quot;: &quot;</span><span class="si">%s%.*f</span><span class="s1">&quot; },&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">problem</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">],</span> <span class="s2">&quot;&lt;&quot;</span> <span class="k">if</span> <span class="p">(</span><span class="n">isMinimization</span><span class="p">)</span> <span class="k">else</span> <span class="s2">&quot;&gt;&quot;</span><span class="p">,</span> <span class="n">floatPrecision</span><span class="p">,</span> <span class="n">initPrimalBound</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">variables: {&#39;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">e</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">flatten</span><span class="p">(</span><span class="n">problem</span><span class="p">[</span><span class="s2">&quot;variables&quot;</span><span class="p">])):</span>
+        <span class="k">if</span> <span class="n">i</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;, &#39;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;&quot;</span><span class="si">%s</span><span class="s1">&quot;:&#39;</span> <span class="o">%</span> <span class="n">e</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">e</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39; </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">e</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[&#39;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">j</span><span class="p">,</span><span class="n">a</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">e</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+                <span class="k">if</span> <span class="n">j</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;, &#39;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;&quot;</span><span class="si">%s</span><span class="s1">&quot;&#39;</span> <span class="o">%</span> <span class="n">a</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;]&#39;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;},&#39;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span> <span class="s1">&#39;</span><span class="se">\t</span><span class="s1">functions: {&#39;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">e</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">flatten</span><span class="p">(</span><span class="n">problem</span><span class="p">[</span><span class="s2">&quot;functions&quot;</span><span class="p">])):</span>
+        <span class="k">if</span> <span class="n">i</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t\t</span><span class="s1">&quot;</span><span class="si">%s</span><span class="s1">&quot;: {scope: [&#39;</span> <span class="o">%</span> <span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">),</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t\t</span><span class="s1">{scope: [&#39;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="n">scope</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">j</span><span class="p">,</span><span class="n">x</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;scope&quot;</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">x</span> <span class="ow">in</span> <span class="n">scope</span><span class="p">):</span> <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">Error: scope of function &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39; with the same variable twice is forbidden!&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">j</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;, &#39;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;&quot;</span><span class="si">%s</span><span class="s1">&quot;&#39;</span> <span class="o">%</span> <span class="n">x</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+            <span class="n">scope</span><span class="p">[</span><span class="n">x</span><span class="p">]</span><span class="o">=</span><span class="n">j</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;], &#39;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;&quot;type:&quot; </span><span class="si">%s</span><span class="s1">, &#39;</span> <span class="o">%</span> <span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">),</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;params&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;params&quot;</span><span class="p">),</span> <span class="nb">dict</span><span class="p">):</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;&quot;params&quot;: {&#39;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+                <span class="n">first</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">globals_key_order</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;params&quot;</span><span class="p">):</span>
+                        <span class="k">if</span> <span class="ow">not</span> <span class="n">first</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;, &#39;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;params&quot;</span><span class="p">)[</span><span class="n">key</span><span class="p">],</span> <span class="nb">str</span><span class="p">):</span> <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;&quot;</span><span class="si">%s</span><span class="s1">&quot;: &quot;</span><span class="si">%s</span><span class="s1">&quot;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">key</span><span class="p">),</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;params&quot;</span><span class="p">)[</span><span class="n">key</span><span class="p">])</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;&#39;&quot;</span><span class="p">,</span> <span class="s1">&#39;&quot;&#39;</span><span class="p">)),</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+                        <span class="k">else</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;&quot;</span><span class="si">%s</span><span class="s1">&quot;: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">key</span><span class="p">),</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;params&quot;</span><span class="p">)[</span><span class="n">key</span><span class="p">])</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;&#39;&quot;</span><span class="p">,</span> <span class="s1">&#39;&quot;&#39;</span><span class="p">)),</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+                        <span class="n">first</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="nb">print</span> <span class="p">(</span><span class="s1">&#39;}&#39;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;&quot;params&quot;: </span><span class="si">%s</span><span class="s1">, &#39;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;params&quot;</span><span class="p">))</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;&#39;&quot;</span><span class="p">,</span><span class="s1">&#39;&quot;&#39;</span><span class="p">),</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;defaultcost&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;&quot;defaultcost:&quot; </span><span class="si">%s</span><span class="s1">, &#39;</span> <span class="o">%</span> <span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;defaultcost&quot;</span><span class="p">),</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;costs&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;&quot;costs&quot;: &#39;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;costs&quot;</span><span class="p">),</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;&quot;</span><span class="si">%s</span><span class="s1">&quot;&#39;</span> <span class="o">%</span> <span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;costs&quot;</span><span class="p">),</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="c1"># reuse future cost function by giving its name here</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[&#39;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">j</span><span class="p">,</span><span class="n">c</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;costs&quot;</span><span class="p">)):</span>
+                    <span class="k">if</span> <span class="n">j</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;, &#39;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">c</span><span class="o">.</span><span class="n">isdigit</span><span class="p">():</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;&quot;</span><span class="si">%s</span><span class="s1">&quot;&#39;</span> <span class="o">%</span> <span class="n">c</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">c</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;]&#39;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;}&#39;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;}</span><span class="se">\n</span><span class="s1">}&#39;</span><span class="p">)</span>
+
+<span class="k">class</span> <span class="nc">Data</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">matrix</span> <span class="o">=</span> <span class="p">[[</span><span class="nb">int</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">l</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">)]</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">top</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">n</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">n</span>
+
+<span class="k">def</span> <span class="nf">model</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">K</span><span class="p">):</span>
+    <span class="n">symmetric</span> <span class="o">=</span> <span class="nb">all</span><span class="p">([</span><span class="n">data</span><span class="o">.</span><span class="n">matrix</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span> <span class="o">==</span> <span class="n">data</span><span class="o">.</span><span class="n">matrix</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">n</span><span class="p">)</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">n</span><span class="p">)</span> <span class="k">if</span> <span class="n">j</span><span class="o">&gt;</span><span class="n">i</span><span class="p">])</span>
+    <span class="n">Var</span> <span class="o">=</span> <span class="p">[(</span><span class="nb">chr</span><span class="p">(</span><span class="mi">65</span> <span class="o">+</span> <span class="n">i</span><span class="p">)</span> <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">n</span> <span class="o">&lt;</span> <span class="mi">28</span> <span class="k">else</span> <span class="s2">&quot;x&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">))</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">n</span><span class="p">)]</span>
+
+    <span class="c1"># sort node variables by decreasing out degree</span>
+    <span class="n">degree</span> <span class="o">=</span> <span class="p">[(</span><span class="n">i</span><span class="p">,</span> <span class="nb">sum</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">matrix</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">n</span><span class="p">)]</span>
+    <span class="n">degree</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">tup</span><span class="p">:</span> <span class="o">-</span><span class="n">tup</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">indexes</span> <span class="o">=</span> <span class="p">[</span><span class="n">e</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">degree</span><span class="p">]</span>
+    
+    <span class="n">BlockModeling</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;BlockModel_N&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">n</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;_K&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">K</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;_Sym&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">symmetric</span><span class="p">),</span>
+        <span class="c1"># order node variables before matrix M variables</span>
+        <span class="c1"># order matrix M variables starting from the main diagonal and moving away progressively</span>
+        <span class="c1"># if input graph is symmetric then keep only the upper triangular matrix of M</span>
+        <span class="s2">&quot;variables&quot;</span><span class="p">:</span> <span class="p">[[(</span><span class="s2">&quot;M_&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">u</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;_&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">u</span><span class="p">),</span> <span class="mi">2</span><span class="p">)</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">K</span><span class="p">)],</span>
+                      <span class="p">[(</span><span class="s2">&quot;M_&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">u</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;_&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">v</span><span class="p">),</span> <span class="mi">2</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">K</span><span class="p">)</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">K</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">K</span><span class="p">)</span>
+                       <span class="k">if</span> <span class="n">u</span> <span class="o">!=</span> <span class="n">v</span> <span class="ow">and</span> <span class="p">(</span><span class="ow">not</span> <span class="n">symmetric</span> <span class="ow">or</span> <span class="n">u</span> <span class="o">&lt;</span> <span class="n">v</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">abs</span><span class="p">(</span><span class="n">u</span> <span class="o">-</span> <span class="n">v</span><span class="p">)</span> <span class="o">==</span> <span class="n">d</span><span class="p">],</span>
+                      <span class="p">[(</span><span class="n">Var</span><span class="p">[</span><span class="n">indexes</span><span class="p">[</span><span class="n">i</span><span class="p">]],</span> <span class="n">K</span><span class="p">)</span>  <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">n</span><span class="p">)]],</span>
+        <span class="s2">&quot;functions&quot;</span><span class="p">:</span>
+            <span class="p">[</span>
+                <span class="c1"># objective function</span>
+                <span class="c1"># if input graph is symmetric then cost tables are also symmetric wrt node variables</span>
+                <span class="p">[{</span><span class="s2">&quot;scope&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;M_&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">u</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;_&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">v</span><span class="p">),</span> <span class="n">Var</span><span class="p">[</span><span class="n">indexes</span><span class="p">[</span><span class="n">i</span><span class="p">]],</span> <span class="n">Var</span><span class="p">[</span><span class="n">indexes</span><span class="p">[</span><span class="n">j</span><span class="p">]]],</span>
+                  <span class="s2">&quot;costs&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span> <span class="k">if</span> <span class="p">(((</span><span class="n">u</span> <span class="o">==</span> <span class="n">k</span> <span class="ow">and</span> <span class="n">v</span> <span class="o">==</span> <span class="n">l</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">symmetric</span> <span class="ow">and</span> <span class="n">u</span> <span class="o">==</span> <span class="n">l</span> <span class="ow">and</span> <span class="n">v</span> <span class="o">==</span> <span class="n">k</span><span class="p">))</span>
+                                  <span class="ow">and</span> <span class="n">data</span><span class="o">.</span><span class="n">matrix</span><span class="p">[</span><span class="n">indexes</span><span class="p">[</span><span class="n">i</span><span class="p">]][</span><span class="n">indexes</span><span class="p">[</span><span class="n">j</span><span class="p">]]</span> <span class="o">!=</span> <span class="n">m</span><span class="p">)</span>
+                            <span class="k">else</span> <span class="mi">0</span>
+                            <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+                            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">K</span><span class="p">)</span>
+                            <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">K</span><span class="p">)]}</span>
+                 <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">K</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">K</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">n</span><span class="p">)</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">n</span><span class="p">)</span>
+                 <span class="k">if</span> <span class="n">i</span> <span class="o">!=</span> <span class="n">j</span> <span class="ow">and</span> <span class="p">(</span><span class="ow">not</span> <span class="n">symmetric</span> <span class="ow">or</span> <span class="n">u</span> <span class="o">&lt;=</span> <span class="n">v</span><span class="p">)],</span>
+
+                <span class="c1"># self-loops</span>
+                <span class="p">[{</span><span class="s2">&quot;scope&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;M_&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">u</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;_&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">u</span><span class="p">),</span> <span class="n">Var</span><span class="p">[</span><span class="n">indexes</span><span class="p">[</span><span class="n">i</span><span class="p">]]],</span>
+                  <span class="s2">&quot;costs&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span> <span class="k">if</span> <span class="p">(</span><span class="n">u</span> <span class="o">==</span> <span class="n">k</span> <span class="ow">and</span> <span class="n">data</span><span class="o">.</span><span class="n">matrix</span><span class="p">[</span><span class="n">indexes</span><span class="p">[</span><span class="n">i</span><span class="p">]][</span><span class="n">indexes</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span> <span class="o">!=</span> <span class="n">m</span><span class="p">)</span>
+                            <span class="k">else</span> <span class="mi">0</span>
+                            <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+                            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">K</span><span class="p">)]}</span>
+                 <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">K</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">n</span><span class="p">)],</span>
+
+                <span class="c1"># breaking partial symmetries by fixing first (K-1) domain variables to be assigned to cluster less than or equal to their index</span>
+                <span class="p">[{</span><span class="s2">&quot;scope&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">Var</span><span class="p">[</span><span class="n">indexes</span><span class="p">[</span><span class="n">l</span><span class="p">]]],</span>
+                  <span class="s2">&quot;costs&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">data</span><span class="o">.</span><span class="n">top</span> <span class="k">if</span> <span class="n">k</span> <span class="o">&gt;</span> <span class="n">l</span> <span class="k">else</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">K</span><span class="p">)]}</span>
+                 <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">K</span><span class="o">-</span><span class="mi">1</span><span class="p">)]</span>
+            <span class="p">]</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="n">BlockModeling</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="c1"># read parameters</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span> <span class="n">exit</span><span class="p">(</span><span class="s1">&#39;Command line argument is problem data filename and number of blocks&#39;</span><span class="p">)</span>
+    <span class="n">K</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">Data</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">K</span><span class="p">)</span>
+    <span class="c1"># dump problem into JSON .cfn format for minimization by toulbar2 solver</span>
+    <span class="n">cfn</span><span class="p">(</span><span class="n">model</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">K</span><span class="p">),</span> <span class="kc">True</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="n">top</span><span class="p">)</span>
+
+</pre></div>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="alp.html" class="btn btn-neutral float-right" title="Airplane landing problem" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="medp.html" class="btn btn-neutral float-left" title="Mendelian error detection problem" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2022, INRAE
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

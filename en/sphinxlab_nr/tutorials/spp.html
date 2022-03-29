@@ -1,0 +1,445 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Square packing problem &mdash; toulbar2 1.0.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/toulbar2.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/toulbar2.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Square soft packing problem" href="sspp.html" />
+    <link rel="prev" title="Warehouse location problem" href="wlp.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> toulbar2
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../presentation.html">Presentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../downloads.html">Downloads</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../documentation.html">Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../publications.html">Publications</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../tutorials.html">Tutorials</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="wnqp.html">Weighted n-queen problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wlsp.html">Weighted latin square problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rlfap.html">Radio link frequency assignment problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fapwp.html">Frequency assignment problem with polarization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="medp.html">Mendelian error detection problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bmp.html">Block modeling problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="alp.html">Airplane landing problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wlp.html">Warehouse location problem</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Square packing problem</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#brief-description">Brief description</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#cfn-model">CFN model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#python-model-generator">Python model generator</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#python-model-and-solve-using-pytoulbar2">Python model and solve using pytoulbar2</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#c-program-using-libtb2-so">C++ program using libtb2.so</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="sspp.html">Square soft packing problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ltps.html">Learning to play the Sudoku</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rccs.html">Renault car configuration system: learning user preferences</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">toulbar2</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+<div class=toulbar2header>
+
+  <div class="toulbar2logo">
+
+    <h1>toulbar2</h1>
+    <h2>An exact solver for cost function networks</h2>
+
+  </div>
+
+  <div class=toulbar2headerline>
+
+    <a href=../presentation.html>Presentation</a> |
+    <a href=../downloads.html>Downloads</a> |
+    <a href=../documentation.html>Documentation</a> |
+    <a href=../publications.html>Publications</a> |
+    <a href=../tutorials.html>Tutorials</a>
+
+  </div>
+
+</div>
+
+
+
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="square-packing-problem">
+<span id="spp"></span><h1>Square packing problem<a class="headerlink" href="#square-packing-problem" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="brief-description">
+<h2>Brief description<a class="headerlink" href="#brief-description" title="Permalink to this headline">¶</a></h2>
+<p>Find a packing of squares of size 1×1, 2×2,…, NxN into a given container square SxS without overlaps. See a problem description in <a class="reference external" href="http://csplib.org/Problems/prob009">CSPLib-009</a>. Results up to N=56 are given <a class="reference external" href="https://oeis.org/A005842">here</a>.</p>
+<p>Optimal solution for 15 squares packed into a 36x36 square (Fig. taken from Takehide Soh)</p>
+<a class="reference internal image-reference" href="../_images/square.png"><img alt="../_images/square.png" src="../_images/square.png" style="height: 250px;" /></a>
+</div>
+<div class="section" id="cfn-model">
+<h2>CFN model<a class="headerlink" href="#cfn-model" title="Permalink to this headline">¶</a></h2>
+<p>We create an integer variable of domain size (S-i)x(S-i) for each square i in [0,N-1] of size i+1 representing its top-left position in the container. Its value modulo (S-i) gives the x-coordinate, whereas its value divided by (S-i) gives the y-coordinate. We have binary constraints to forbid any overlapping pair of squares. We make the problem a pure satisfaction problem by fixing S. The initial upper bound is 1.</p>
+</div>
+<div class="section" id="python-model-generator">
+<h2>Python model generator<a class="headerlink" href="#python-model-generator" title="Permalink to this headline">¶</a></h2>
+<p>The following code using python3 interpreter will generate the corresponding cost function network (e.g. “python3 square.py 3 5”).</p>
+<p><a class="reference download internal" download="" href="../_downloads/18dca9f9465c539683a4bcead0dc6b10/square.py"><code class="xref download docutils literal notranslate"><span class="pre">square.py</span></code></a></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">from</span> <span class="nn">random</span> <span class="kn">import</span> <span class="n">seed</span>
+<span class="n">seed</span><span class="p">(</span><span class="mi">123456789</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">flatten</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">x</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">el</span><span class="p">,</span> <span class="s2">&quot;__iter__&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">el</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">el</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">el</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="n">result</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">flatten</span><span class="p">(</span><span class="n">el</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">el</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">result</span>
+
+<span class="k">def</span> <span class="nf">cfn</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="n">isMinimization</span><span class="p">,</span> <span class="n">initPrimalBound</span><span class="p">,</span> <span class="n">floatPrecision</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="n">globals_key_order</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;rhs&quot;</span><span class="p">,</span> <span class="s2">&quot;capacity&quot;</span><span class="p">,</span> <span class="s2">&quot;weights&quot;</span><span class="p">,</span> <span class="s2">&quot;weightedvalues&quot;</span><span class="p">,</span> <span class="s2">&quot;metric&quot;</span><span class="p">,</span> <span class="s2">&quot;cost&quot;</span><span class="p">,</span> <span class="s2">&quot;bounds&quot;</span><span class="p">,</span> <span class="s2">&quot;vars1&quot;</span><span class="p">,</span> <span class="s2">&quot;vars2&quot;</span><span class="p">,</span> <span class="s2">&quot;nb_states&quot;</span><span class="p">,</span> <span class="s2">&quot;starts&quot;</span><span class="p">,</span> <span class="s2">&quot;ends&quot;</span><span class="p">,</span> <span class="s2">&quot;transitions&quot;</span><span class="p">,</span> <span class="s2">&quot;nb_symbols&quot;</span><span class="p">,</span> <span class="s2">&quot;nb_values&quot;</span><span class="p">,</span> <span class="s2">&quot;start&quot;</span><span class="p">,</span> <span class="s2">&quot;terminals&quot;</span><span class="p">,</span> <span class="s2">&quot;non_terminals&quot;</span><span class="p">,</span> <span class="s2">&quot;min&quot;</span><span class="p">,</span> <span class="s2">&quot;max&quot;</span><span class="p">,</span> <span class="s2">&quot;values&quot;</span><span class="p">,</span> <span class="s2">&quot;defaultcost&quot;</span><span class="p">,</span> <span class="s2">&quot;tuples&quot;</span><span class="p">,</span> <span class="s2">&quot;comparator&quot;</span><span class="p">,</span> <span class="s2">&quot;to&quot;</span><span class="p">]</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;{&#39;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">problem: { &quot;name&quot;: &quot;</span><span class="si">%s</span><span class="s1">&quot;, &quot;mustbe&quot;: &quot;</span><span class="si">%s%.*f</span><span class="s1">&quot; },&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">problem</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">],</span> <span class="s2">&quot;&lt;&quot;</span> <span class="k">if</span> <span class="p">(</span><span class="n">isMinimization</span><span class="p">)</span> <span class="k">else</span> <span class="s2">&quot;&gt;&quot;</span><span class="p">,</span> <span class="n">floatPrecision</span><span class="p">,</span> <span class="n">initPrimalBound</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">variables: {&#39;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">e</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">flatten</span><span class="p">(</span><span class="n">problem</span><span class="p">[</span><span class="s2">&quot;variables&quot;</span><span class="p">])):</span>
+        <span class="k">if</span> <span class="n">i</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;, &#39;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;&quot;</span><span class="si">%s</span><span class="s1">&quot;:&#39;</span> <span class="o">%</span> <span class="n">e</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">e</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39; </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">e</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[&#39;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">j</span><span class="p">,</span><span class="n">a</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">e</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+                <span class="k">if</span> <span class="n">j</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;, &#39;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;&quot;</span><span class="si">%s</span><span class="s1">&quot;&#39;</span> <span class="o">%</span> <span class="n">a</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;]&#39;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;},&#39;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span> <span class="s1">&#39;</span><span class="se">\t</span><span class="s1">functions: {&#39;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">e</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">flatten</span><span class="p">(</span><span class="n">problem</span><span class="p">[</span><span class="s2">&quot;functions&quot;</span><span class="p">])):</span>
+        <span class="k">if</span> <span class="n">i</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t\t</span><span class="s1">&quot;</span><span class="si">%s</span><span class="s1">&quot;: {scope: [&#39;</span> <span class="o">%</span> <span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">),</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t\t</span><span class="s1">{scope: [&#39;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="n">scope</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">j</span><span class="p">,</span><span class="n">x</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;scope&quot;</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">x</span> <span class="ow">in</span> <span class="n">scope</span><span class="p">):</span> <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">Error: scope of function &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39; with the same variable twice is forbidden!&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">j</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;, &#39;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;&quot;</span><span class="si">%s</span><span class="s1">&quot;&#39;</span> <span class="o">%</span> <span class="n">x</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+            <span class="n">scope</span><span class="p">[</span><span class="n">x</span><span class="p">]</span><span class="o">=</span><span class="n">j</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;], &#39;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;&quot;type&quot;: </span><span class="si">%s</span><span class="s1">, &#39;</span> <span class="o">%</span> <span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">),</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;params&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;params&quot;</span><span class="p">),</span> <span class="nb">dict</span><span class="p">):</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;&quot;params&quot;: {&#39;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+                <span class="n">first</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">globals_key_order</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;params&quot;</span><span class="p">):</span>
+                        <span class="k">if</span> <span class="ow">not</span> <span class="n">first</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;, &#39;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;params&quot;</span><span class="p">)[</span><span class="n">key</span><span class="p">],</span> <span class="nb">str</span><span class="p">):</span> <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;&quot;</span><span class="si">%s</span><span class="s1">&quot;: &quot;</span><span class="si">%s</span><span class="s1">&quot;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">key</span><span class="p">),</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;params&quot;</span><span class="p">)[</span><span class="n">key</span><span class="p">])</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;&#39;&quot;</span><span class="p">,</span> <span class="s1">&#39;&quot;&#39;</span><span class="p">)),</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+                        <span class="k">else</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;&quot;</span><span class="si">%s</span><span class="s1">&quot;: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">key</span><span class="p">),</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;params&quot;</span><span class="p">)[</span><span class="n">key</span><span class="p">])</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;&#39;&quot;</span><span class="p">,</span> <span class="s1">&#39;&quot;&#39;</span><span class="p">)),</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+                        <span class="n">first</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="nb">print</span> <span class="p">(</span><span class="s1">&#39;}&#39;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;&quot;params&quot;: </span><span class="si">%s</span><span class="s1">, &#39;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;params&quot;</span><span class="p">))</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;&#39;&quot;</span><span class="p">,</span><span class="s1">&#39;&quot;&#39;</span><span class="p">),</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;defaultcost&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;&quot;defaultcost:&quot; </span><span class="si">%s</span><span class="s1">, &#39;</span> <span class="o">%</span> <span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;defaultcost&quot;</span><span class="p">),</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;costs&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;&quot;costs&quot;: &#39;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;costs&quot;</span><span class="p">),</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;&quot;</span><span class="si">%s</span><span class="s1">&quot;&#39;</span> <span class="o">%</span> <span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;costs&quot;</span><span class="p">),</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="c1"># reuse future cost function by giving its name here</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[&#39;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">j</span><span class="p">,</span><span class="n">c</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;costs&quot;</span><span class="p">)):</span>
+                    <span class="k">if</span> <span class="n">j</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;, &#39;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">c</span><span class="o">.</span><span class="n">isdigit</span><span class="p">():</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;&quot;</span><span class="si">%s</span><span class="s1">&quot;&#39;</span> <span class="o">%</span> <span class="n">c</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">c</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;]&#39;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;}&#39;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;}</span><span class="se">\n</span><span class="s1">}&#39;</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">model</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">S</span><span class="p">,</span> <span class="n">top</span><span class="p">):</span>
+    <span class="n">Var</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;sq&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">)]</span>
+    <span class="n">Model</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;SquarePacking&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">N</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;_&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">S</span><span class="p">),</span>
+        <span class="s2">&quot;variables&quot;</span><span class="p">:</span> <span class="p">[(</span><span class="n">Var</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="p">(</span><span class="n">S</span><span class="o">-</span><span class="n">i</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">S</span><span class="o">-</span><span class="n">i</span><span class="p">))</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">)],</span>
+        <span class="s2">&quot;functions&quot;</span><span class="p">:</span>
+            <span class="p">[</span>
+             <span class="c1"># no overlapping constraint</span>
+             <span class="p">[{</span><span class="s2">&quot;scope&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">Var</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">Var</span><span class="p">[</span><span class="n">j</span><span class="p">]],</span> <span class="s2">&quot;costs&quot;</span><span class="p">:</span> <span class="p">[(</span><span class="mi">0</span> <span class="k">if</span> <span class="p">((</span><span class="n">a</span><span class="o">%</span><span class="p">(</span><span class="n">S</span><span class="o">-</span><span class="n">i</span><span class="p">))</span> <span class="o">+</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">&lt;=</span> <span class="p">(</span><span class="n">b</span><span class="o">%</span><span class="p">(</span><span class="n">S</span><span class="o">-</span><span class="n">j</span><span class="p">)))</span> <span class="ow">or</span> <span class="p">((</span><span class="n">b</span><span class="o">%</span><span class="p">(</span><span class="n">S</span><span class="o">-</span><span class="n">j</span><span class="p">))</span> <span class="o">+</span> <span class="n">j</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">&lt;=</span> <span class="p">(</span><span class="n">a</span><span class="o">%</span><span class="p">(</span><span class="n">S</span><span class="o">-</span><span class="n">i</span><span class="p">)))</span> <span class="ow">or</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">a</span><span class="o">/</span><span class="p">(</span><span class="n">S</span><span class="o">-</span><span class="n">i</span><span class="p">))</span> <span class="o">+</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">&lt;=</span> <span class="nb">int</span><span class="p">(</span><span class="n">b</span><span class="o">/</span><span class="p">(</span><span class="n">S</span><span class="o">-</span><span class="n">j</span><span class="p">)))</span> <span class="ow">or</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">b</span><span class="o">/</span><span class="p">(</span><span class="n">S</span><span class="o">-</span><span class="n">j</span><span class="p">))</span> <span class="o">+</span> <span class="n">j</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">&lt;=</span> <span class="nb">int</span><span class="p">(</span><span class="n">a</span><span class="o">/</span><span class="p">(</span><span class="n">S</span><span class="o">-</span><span class="n">i</span><span class="p">)))</span> <span class="k">else</span> <span class="n">top</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">((</span><span class="n">S</span><span class="o">-</span><span class="n">i</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">S</span><span class="o">-</span><span class="n">i</span><span class="p">))</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">((</span><span class="n">S</span><span class="o">-</span><span class="n">j</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">S</span><span class="o">-</span><span class="n">j</span><span class="p">))]}</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">)</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">)</span> <span class="k">if</span> <span class="p">(</span><span class="n">i</span> <span class="o">&lt;</span> <span class="n">j</span><span class="p">)]</span>
+            <span class="p">]</span>
+         <span class="p">}</span>
+    <span class="k">return</span> <span class="n">Model</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="c1"># read parameters</span>
+    <span class="n">N</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">S</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+    <span class="c1"># infinite cost</span>
+    <span class="n">top</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="c1"># dump problem into JSON .cfn format for minimization</span>
+    <span class="n">cfn</span><span class="p">(</span><span class="n">model</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">S</span><span class="p">,</span> <span class="n">top</span><span class="p">),</span> <span class="kc">True</span><span class="p">,</span> <span class="n">top</span><span class="p">)</span>
+
+</pre></div>
+</div>
+</div>
+<div class="section" id="python-model-and-solve-using-pytoulbar2">
+<h2>Python model and solve using pytoulbar2<a class="headerlink" href="#python-model-and-solve-using-pytoulbar2" title="Permalink to this headline">¶</a></h2>
+<p>The following code uses the pytoulbar2 module to generate the cost function network and solve it (e.g. “python3 square2.py 3 5”). Compile toulbar2 with “cmake -DPYTB2=ON . ; make” and copy the resulting module in pytoulbar2 folder “cp lib/Linux/pytb2.cpython* pytoulbar2”.</p>
+<p><a class="reference download internal" download="" href="../_downloads/1c4c91b33dd40423a409ac721f0ef971/square2.py"><code class="xref download docutils literal notranslate"><span class="pre">square2.py</span></code></a></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">from</span> <span class="nn">random</span> <span class="kn">import</span> <span class="n">seed</span>
+<span class="n">seed</span><span class="p">(</span><span class="mi">123456789</span><span class="p">)</span>
+
+<span class="kn">import</span> <span class="nn">pytoulbar2</span>
+
+<span class="n">N</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+<span class="n">S</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+
+<span class="n">top</span> <span class="o">=</span> <span class="mi">1</span>
+
+<span class="n">Problem</span> <span class="o">=</span> <span class="n">pytoulbar2</span><span class="o">.</span><span class="n">CFN</span><span class="p">(</span><span class="n">top</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
+    <span class="n">Problem</span><span class="o">.</span><span class="n">AddVariable</span><span class="p">(</span><span class="s1">&#39;sq&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">),</span> <span class="nb">range</span><span class="p">((</span><span class="n">S</span><span class="o">-</span><span class="n">i</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">S</span><span class="o">-</span><span class="n">i</span><span class="p">)))</span>
+
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="n">N</span><span class="p">):</span>
+        <span class="n">Problem</span><span class="o">.</span><span class="n">AddFunction</span><span class="p">([</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span> <span class="k">if</span> <span class="p">((</span><span class="n">a</span><span class="o">%</span><span class="p">(</span><span class="n">S</span><span class="o">-</span><span class="n">i</span><span class="p">))</span> <span class="o">+</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">&lt;=</span> <span class="p">(</span><span class="n">b</span><span class="o">%</span><span class="p">(</span><span class="n">S</span><span class="o">-</span><span class="n">j</span><span class="p">)))</span> <span class="ow">or</span> <span class="p">((</span><span class="n">b</span><span class="o">%</span><span class="p">(</span><span class="n">S</span><span class="o">-</span><span class="n">j</span><span class="p">))</span> <span class="o">+</span> <span class="n">j</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">&lt;=</span> <span class="p">(</span><span class="n">a</span><span class="o">%</span><span class="p">(</span><span class="n">S</span><span class="o">-</span><span class="n">i</span><span class="p">)))</span> <span class="ow">or</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">a</span><span class="o">/</span><span class="p">(</span><span class="n">S</span><span class="o">-</span><span class="n">i</span><span class="p">))</span> <span class="o">+</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">&lt;=</span> <span class="nb">int</span><span class="p">(</span><span class="n">b</span><span class="o">/</span><span class="p">(</span><span class="n">S</span><span class="o">-</span><span class="n">j</span><span class="p">)))</span> <span class="ow">or</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">b</span><span class="o">/</span><span class="p">(</span><span class="n">S</span><span class="o">-</span><span class="n">j</span><span class="p">))</span> <span class="o">+</span> <span class="n">j</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">&lt;=</span> <span class="nb">int</span><span class="p">(</span><span class="n">a</span><span class="o">/</span><span class="p">(</span><span class="n">S</span><span class="o">-</span><span class="n">i</span><span class="p">)))</span> <span class="k">else</span> <span class="n">top</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">((</span><span class="n">S</span><span class="o">-</span><span class="n">i</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">S</span><span class="o">-</span><span class="n">i</span><span class="p">))</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">((</span><span class="n">S</span><span class="o">-</span><span class="n">j</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">S</span><span class="o">-</span><span class="n">j</span><span class="p">))])</span>
+
+<span class="c1">#Problem.Dump(&#39;square.cfn&#39;)</span>
+<span class="n">Problem</span><span class="o">.</span><span class="n">Option</span><span class="o">.</span><span class="n">FullEAC</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="n">Problem</span><span class="o">.</span><span class="n">Option</span><span class="o">.</span><span class="n">showSolutions</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="n">Problem</span><span class="o">.</span><span class="n">Solve</span><span class="p">()</span>
+
+</pre></div>
+</div>
+</div>
+<div class="section" id="c-program-using-libtb2-so">
+<h2>C++ program using libtb2.so<a class="headerlink" href="#c-program-using-libtb2-so" title="Permalink to this headline">¶</a></h2>
+<p>The following code uses the C++ toulbar2 library libtb2.so. Compile toulbar2 with “cmake -DLIBTB2=ON -DPYTB2=ON . ; make” and copy the library in your current directory “cp lib/Linux/libtb2.so .” before compiling “g++ -o square square.cpp -Isrc -Llib/Linux -std=c++11 -O3 -DNDEBUG -DBOOST -DLONGDOUBLE_PROB -DLONGLONG_COST -DWCSPFORMATONLY libtb2.so” and running the example (e.g. “./square 15 36”).</p>
+<p><a class="reference download internal" download="" href="../_downloads/b4cb825f7a34f249ad5092e7128b23d1/square.cpp"><code class="xref download docutils literal notranslate"><span class="pre">square.cpp</span></code></a></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>
+/**
+ * Square Packing Problem
+ */
+
+// Compile with cmake option -DLIBTB2=ON -DPYTB2=ON to get C++ toulbar2 library lib/Linux/libtb2.so
+// Then,
+// g++ -o square square.cpp -Isrc -Llib/Linux -std=c++11 -O3 -DNDEBUG -DBOOST -DLONGDOUBLE_PROB -DLONGLONG_COST -DWCSPFORMATONLY libtb2.so
+
+#include &quot;toulbar2lib.hpp&quot;
+
+#include &lt;string.h&gt;
+#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;unistd.h&gt;
+
+int main(int argc, char* argv[])
+{
+    int N = atoi(argv[1]);
+    int S = atoi(argv[2]);
+
+    tb2init(); // must be call before setting specific ToulBar2 options and creating a model
+
+    ToulBar2::verbose = 0; // change to 0 or higher values to see more trace information
+
+    initCosts(); // last check for compatibility issues between ToulBar2 options and Cost data-type
+
+    Cost top = UNIT_COST;
+    WeightedCSPSolver* solver = WeightedCSPSolver::makeWeightedCSPSolver(top);
+
+    for (int i=0; i&lt;N; i++) {
+        solver-&gt;getWCSP()-&gt;makeEnumeratedVariable(&quot;sq&quot; + to_string(i+1), 0, (S-i)*(S-i) - 1);
+    }
+
+    for (int i=0; i&lt;N; i++) {
+        for (int j=i+1; j&lt;N; j++) {
+            vector&lt;Cost&gt; costs((S-i)*(S-i)*(S-j)*(S-j), MIN_COST);
+    	    for (int a=0; a&lt;(S-i)*(S-i); a++) {
+    	        for (int b=0; b&lt;(S-j)*(S-j); b++) {
+                    costs[a*(S-j)*(S-j)+b] = ((((a%(S-i)) + i + 1 &lt;= (b%(S-j))) || ((b%(S-j)) + j + 1 &lt;= (a%(S-i))) || ((a/(S-i)) + i + 1 &lt;= (b/(S-j))) || ((b/(S-j)) + j + 1 &lt;= (a/(S-i))))?MIN_COST:top);
+                }
+            }
+            solver-&gt;getWCSP()-&gt;postBinaryConstraint(i, j, costs);
+        }
+    }
+
+    solver-&gt;getWCSP()-&gt;sortConstraints(); // must be done at the end of the modeling
+
+    tb2checkOptions();
+    if (solver-&gt;solve()) {
+            vector&lt;Value&gt; sol;
+            solver-&gt;getSolution(sol);
+    	    for (int y=0; y&lt;S; y++) {
+                for (int x=0; x&lt;S; x++) {
+                    char c = &#39; &#39;;
+                    for (int i=0; i&lt;N; i++) {
+                        if (x &gt;= (sol[i]%(S-i)) &amp;&amp; x &lt; (sol[i]%(S-i) ) + i + 1 &amp;&amp; y &gt;= (sol[i]/(S-i)) &amp;&amp; y &lt; (sol[i]/(S-i)) + i + 1) {
+                            c = 65+i;
+                            break;
+                        }
+                     }
+                     cout &lt;&lt; c;
+                }
+                cout &lt;&lt; endl;
+            }
+    } else {
+            cout &lt;&lt; &quot;No solution found!&quot; &lt;&lt; endl;
+    }
+
+    delete solver;
+    return 0;
+}
+
+</pre></div>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="sspp.html" class="btn btn-neutral float-right" title="Square soft packing problem" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="wlp.html" class="btn btn-neutral float-left" title="Warehouse location problem" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2022, INRAE
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
