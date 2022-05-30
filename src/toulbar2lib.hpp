@@ -26,6 +26,11 @@
 </pre>
  */
 
+/* Warning in case of 'mainpage' modifications :
+ * The text of 'mainpage' Doxygen keyword is not automatically generated
+ * into Sphinx documentation, where it has been manually copied.
+ */
+
 /*! @mainpage
 
     <table>
@@ -143,8 +148,14 @@ public:
     /// \brief assigns a set of variables at once and propagates (used by Local Search methods such as Large Neighborhood Search)
     /// \param varIndexes vector of variable indexes as returned by makeXXXVariable
     /// \param newValues vector of values to be assigned to the corresponding variables
+    /// \param force boolean if true then apply assignLS even if the variable is already assigned
+    /// Note this function is equivalent but faster than a sequence of assign.
     virtual void assignLS(vector<int>& varIndexes, vector<Value>& newValues, bool force = false) = 0;
     virtual void assignLS(int* varIndexes, Value* newValues, unsigned int size, bool dopropagate, bool force = false) = 0;
+
+    /// \brief deconnects a set of variables from the rest of the problem and assigns them to their support value (used by Incremental Search)
+    /// \param varIndexes vector of variable indexes as returned by makeXXXVariable
+    virtual void deconnect(vector<int>& varIndexes) = 0;
 
     virtual Cost getUnaryCost(int varIndex, Value v) const = 0; ///< \brief unary cost associated to a domain value
     virtual Cost getMaxUnaryCost(int varIndex) const = 0; ///< \brief maximum unary cost in the domain
@@ -158,7 +169,9 @@ public:
     virtual int getDegree(int varIndex) const = 0; ///< \brief approximate degree of a variable (\e ie number of active cost functions, see \ref varelim)
     virtual int getTrueDegree(int varIndex) const = 0; ///< \brief degree of a variable
     virtual Long getWeightedDegree(int varIndex) const = 0; ///< \brief weighted degree heuristic
-    virtual void resetWeightedDegree(int varIndex) = 0; ///< \brief initialize weighted degree heuristic
+    virtual void resetWeightedDegree() = 0; ///< \brief initialize weighted degree heuristic
+    virtual void resetTightness() = 0; ///< \brief initialize constraint tightness used by some heuristics (including weighted degree)
+    virtual void resetTightnessAndWeightedDegree() = 0; ///< \brief initialize tightness and weighted degree heuristics
 
     virtual void preprocessing() = 0; ///< \brief applies various preprocessing techniques to simplify the current problem
     /// \brief sorts the list of cost functions associated to each variable based on smallest problem variable indexes
@@ -169,6 +182,7 @@ public:
     virtual void whenContradiction() = 0; ///< \brief after a contradiction, resets propagation queues
     virtual void propagate() = 0; ///< \brief propagates until a fix point is reached (or throws a contradiction)
     virtual bool verify() = 0; ///< \brief checks the propagation fix point is reached
+    virtual void addAMOConstraints() = 0;
 
     virtual unsigned int numberOfVariables() const = 0; ///< \brief number of created variables
     virtual unsigned int numberOfUnassignedVariables() const = 0; ///< \brief current number of unassigned variables
@@ -192,7 +206,7 @@ public:
     /// - enumerated domain allowing direct access to each value (array) and iteration on current domain in times proportional to the current number of values (double-linked list)
     /// - interval domain represented by a lower value and an upper value only (useful for large domains)
     /// .
-    /// \warning Current implementation of toulbar2 has limited modeling and solving facilities for interval domains.
+    /// Warning : Current implementation of toulbar2 has limited modeling and solving facilities for interval domains.
     /// There is no cost functions accepting both interval and enumerated variables for the moment, which means all the variables should have the same type.
 
     /// \addtogroup modeling
@@ -211,14 +225,22 @@ public:
     ///   - \e network propagator based on cost function network decomposition with "w" prefix (\e wsum, \e wvarsum, \e walldiff, \e wgcc, \e wsame, \e wsamegcc, \e wregular, \e wamong, \e wvaramong, \e woverlap)
     ///   .
     /// .
-    /// \note The default semantics (using \e var keyword) of monolithic (flow and DAG-based propagators) global cost functions is to count the number of variables to change in order to restore consistency and to multiply it by the basecost. Other particular semantics may be used in conjunction with the flow-based propagator
-    /// \note The semantics of the network-based propagator approach is either a hard constraint ("hard" keyword) or a soft constraint by multiplying the number of changes by the basecost ("lin" or "var" keyword) or by multiplying the square value of the number of changes by the basecost ("quad" keyword)
-    /// \note A decomposable version exists for each monolithic global cost function, except grammar and MST. The decomposable ones may propagate less than their monolithic counterpart and they introduce extra variables but they can be much faster in practice
-    /// \warning Each global cost function may have less than three propagators implemented
-    /// \warning Current implementation of toulbar2 has limited solving facilities for monolithic global cost functions (no BTD-like methods nor variable elimination)
-    /// \warning Current implementation of toulbar2 disallows global cost functions with less than or equal to three variables in their scope (use cost functions in extension instead)
-    /// \warning Before modeling the problem using make and post, call ::tb2init method to initialize toulbar2 global variables
-    /// \warning After modeling the problem using make and post, call WeightedCSP::sortConstraints method to initialize correctly the model before solving it
+    ///
+    /// Note : The default semantics (using \e var keyword) of monolithic (flow and DAG-based propagators) global cost functions is to count the number of variables to change in order to restore consistency and to multiply it by the basecost. Other particular semantics may be used in conjunction with the flow-based propagator
+    ///
+    /// Note : The semantics of the network-based propagator approach is either a hard constraint ("hard" keyword) or a soft constraint by multiplying the number of changes by the basecost ("lin" or "var" keyword) or by multiplying the square value of the number of changes by the basecost ("quad" keyword)
+    ///
+    /// Note : A decomposable version exists for each monolithic global cost function, except grammar and MST. The decomposable ones may propagate less than their monolithic counterpart and they introduce extra variables but they can be much faster in practice
+    ///
+    /// Warning : Each global cost function may have less than three propagators implemented
+    ///
+    /// Warning : Current implementation of toulbar2 has limited solving facilities for monolithic global cost functions (no BTD-like methods nor variable elimination)
+    ///
+    /// Warning : Current implementation of toulbar2 disallows global cost functions with less than or equal to three variables in their scope (use cost functions in extension instead)
+    ///
+    /// Warning : Before modeling the problem using make and post, call ::tb2init method to initialize toulbar2 global variables
+    ///
+    /// Warning : After modeling the problem using make and post, call WeightedCSP::sortConstraints method to initialize correctly the model before solving it
 
     virtual int makeEnumeratedVariable(string n, Value iinf, Value isup) = 0; ///< \brief create an enumerated variable with its domain bounds
     virtual int makeEnumeratedVariable(string n, vector<Value>& dom) = 0; ///< \brief create an enumerated variable with its domain values
@@ -246,10 +268,10 @@ public:
     virtual int postSupxyc(int xIndex, int yIndex, Value cst, Value deltamax = MAX_VAL - MIN_VAL) = 0;
     virtual int postDisjunction(int xIndex, int yIndex, Value cstx, Value csty, Cost penalty) = 0;
     virtual int postSpecialDisjunction(int xIndex, int yIndex, Value cstx, Value csty, Value xinfty, Value yinfty, Cost costx, Cost costy) = 0;
-    virtual int postCliqueConstraint(vector<int>& scope, const string& arguments) = 0;
+    virtual int postCliqueConstraint(vector<int> scope, const string& arguments) = 0;
     virtual int postCliqueConstraint(int* scopeIndex, int arity, istream& file) = 0; /// \deprecated
-    virtual int postKnapsackConstraint(vector<int>& scope, const string& arguments, bool isclique = false, bool kp = false) = 0;
-    virtual int postKnapsackConstraint(int* scopeIndex, int arity, istream& file, bool isclique = false, bool kp = false) = 0; /// \deprecated
+    virtual int postKnapsackConstraint(vector<int> scope, const string& arguments, bool isclique = false, bool kp = false, bool conflict = false) = 0;
+    virtual int postKnapsackConstraint(int* scopeIndex, int arity, istream& file, bool isclique = false, bool kp = false, bool conflict = false) = 0; /// \deprecated
     virtual int postGlobalConstraint(int* scopeIndex, int arity, const string& gcname, istream& file, int* constrcounter = NULL, bool mult = true) = 0; ///< \deprecated Please use the postWxxx methods instead
 
     /// \brief post a soft among cost function
@@ -288,7 +310,8 @@ public:
     /// \param semantics the semantics of the global cost function: for flow-based propagator: "var" or "dec" or "decbi" (decomposed into a binary cost function complete network), for DAG-based propagator: "var", for network-based propagator: "hard" or "lin" or "quad" (decomposed based on wamong)
     /// \param propagator the propagation method ("flow", "DAG", "network")
     /// \param baseCost the scaling factor of the violation
-    virtual int postWAllDiff(int* scopeIndex, int arity, const string& semantics, const string& propagator, Cost baseCost) = 0;
+    virtual int postWAllDiff(vector<int>& scope, const string& semantics, const string& propagator, Cost baseCost) = 0; ///< post a soft alldifferent cost function
+    virtual int postWAllDiff(int* scopeIndex, int arity, const string& semantics, const string& propagator, Cost baseCost) = 0; ///< \deprecated
     virtual void postWAllDiff(int* scopeIndex, int arity, string semantics, Cost baseCost) = 0; ///< \deprecated post a soft alldifferent cost function decomposed as a cost function network
 
     /// \brief post a soft global cardinality cost function
@@ -442,6 +465,7 @@ public:
     virtual TreeDecomposition* getTreeDec() = 0;
 
     virtual vector<Variable*>& getDivVariables() = 0; ///< \brief returns all variables on which a diversity request exists
+    virtual void initDivVariables() = 0; ///< \brief initializes diversity variables with all decision variables in the problem
 
     virtual void iniSingleton() = 0;
     virtual void updateSingleton() = 0;
@@ -465,9 +489,10 @@ ostream& operator<<(ostream& os, WeightedCSP& wcsp); ///< \see WeightedCSP::prin
 class WeightedCSPSolver {
 public:
 #ifdef OPENMPI
-    static const int MASTER = 0;   // Master MPI rank number
-    static const int WORKTAG = 1;   // MPI tag value for still working
-    static const int DIETAG = 2;   // MPI tag value for stop working
+    static const int MASTER = 0; // Master MPI rank number
+    static const int WORKTAG = 1; // MPI tag value for still working
+    static const int DIETAG = 2; // MPI tag value for stop working
+    static const int IDLETAG = 3; // MPI tag value for no more working
 #endif
     static WeightedCSPSolver* makeWeightedCSPSolver(Cost initUpperBound); ///< \brief WeightedCSP Solver factory
 
@@ -484,7 +509,8 @@ public:
     virtual void remove(int varIndex, Value value, bool reverse = false) = 0; ///< \brief removes a domain value and propagates (valid if done for an enumerated variable or on its domain bounds)
 
     /** \defgroup solving Solving cost function networks
-     * After creating a Weighted CSP, it can be solved using a local search method INCOP (see WeightedCSPSolver::narycsp) and/or an exact search method (see WeightedCSPSolver::solve).\n
+     * After creating a Weighted CSP, it can be solved using a local search method INCOP (see WeightedCSPSolver::narycsp) and/or an exact search method (see WeightedCSPSolver::solve).
+     *
      * Various options of the solving methods are controlled by ::Toulbar2 static class members (see files ./src/core/tb2types.hpp and ./src/tb2main.cpp).\n
      * A brief code example reading a wcsp problem given as a single command-line parameter and solving it:
      * \code
@@ -531,8 +557,10 @@ public:
         delete solver;
     }
     \endcode
-     * \see another code example in ./src/toulbar2test.cpp
-     * \warning variable domains must start at zero, otherwise recompile libtb2.so without flag WCSPFORMATONLY
+     *
+     * See : another code example in ./src/toulbar2test.cpp
+     *
+     * Warning : variable domains must start at zero, otherwise recompile libtb2.so without flag WCSPFORMATONLY
     **/
 
     virtual Cost read_wcsp(const char* fileName) = 0; ///< \brief reads a Cost function network from a file (format as indicated by ToulBar2:: global variables)

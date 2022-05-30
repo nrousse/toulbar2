@@ -316,6 +316,16 @@ public:
             propagate();
     }
 
+    /// \brief deconnects a set of variables from the rest of the problem and assigns them to their support value (used by Incremental Search)
+    /// \param varIndexes vector of variable indexes as returned by makeXXXVariable
+    void deconnect(vector<int>& varIndexes)
+    {
+        for (unsigned int index: varIndexes) {
+            assert(index >= 0 && index < numberOfVariables());
+            vars[index]->deconnect();
+        }
+    }
+
     Cost getUnaryCost(int varIndex, Value v) const { return vars[varIndex]->getCost(v); } ///< \brief unary cost associated to a domain value
     Cost getMaxUnaryCost(int varIndex) const { return vars[varIndex]->getMaxCost(); } ///< \brief maximum unary cost in the domain
     Value getMaxUnaryCostValue(int varIndex) const { return vars[varIndex]->getMaxCostValue(); } ///< \brief a value having the maximum unary cost in the domain
@@ -328,7 +338,9 @@ public:
     int getDegree(int varIndex) const { return vars[varIndex]->getDegree(); } ///< \brief approximate degree of a variable (\e ie number of active cost functions, see \ref varelim)
     int getTrueDegree(int varIndex) const { return vars[varIndex]->getTrueDegree(); } ///< \brief degree of a variable
     Long getWeightedDegree(int varIndex) const { return vars[varIndex]->getWeightedDegree(); } ///< \brief weighted degree heuristic
-    void resetWeightedDegree(int varIndex) { vars[varIndex]->resetWeightedDegree(); } ///< \brief initialize weighted degree heuristic
+    void resetWeightedDegree(); ///< \brief initialize weighted degree heuristic
+    void resetTightness(); ///< \brief initialize constraint tightness used by some heuristics (including weighted degree)
+    void resetTightnessAndWeightedDegree(); ///< \brief initialize tightness and weighted degree heuristics
     void revise(Constraint* c) { lastConflictConstr = c; } ///< \internal last conflict heuristic
     /// \internal last conflict heuristic
     void conflict()
@@ -461,19 +473,36 @@ public:
         return divVariables;
     }
 
-    int postCliqueConstraint(vector<int>& scope, const string& arguments)
+    void initDivVariables()
+    {
+        divVariables.clear();
+        for (auto var : vars) {
+            if (var->unassigned() && var->getName().rfind(IMPLICIT_VAR_TAG, 0) != 0) {
+                if (var->enumerated()) {
+                    divVariables.push_back(var);
+                } else {
+                    cerr << "Error: cannot control diversity of non enumerated variable: " << var->getName() << endl;
+                    throw BadConfiguration();
+                }
+            }
+        }
+    }
+
+    int postCliqueConstraint(vector<int> scope, const string& arguments)
     {
         std::istringstream file(arguments);
         return postCliqueConstraint(scope.data(), scope.size(), file);
     }
-    int postCliqueConstraint(int* scopeIndex, int arity, istream& file);
+    int postCliqueConstraint(int* scopeIndex, int arity, istream& file); // warning! scopeIndex may be modified internally.
 
-    int postKnapsackConstraint(vector<int>& scope, const string& arguments, bool isclique = false, bool kp = false)
+    void addAMOConstraints();
+
+    int postKnapsackConstraint(vector<int> scope, const string& arguments, bool isclique = false, bool kp = false, bool conflict = false)
     {
-        std::istringstream file(arguments);
-        return postKnapsackConstraint(scope.data(), scope.size(), file, isclique, kp);
+        istringstream file(arguments);
+        return postKnapsackConstraint(scope.data(), scope.size(), file, isclique, kp, conflict);
     }
-    int postKnapsackConstraint(int* scopeIndex, int arity, istream& file, bool isclique, bool kp);
+    int postKnapsackConstraint(int* scopeIndex, int arity, istream& file, bool isclique, bool kp, bool conflict); // warning! scopeIndex may be modified internally.
     int postGlobalConstraint(int* scopeIndex, int arity, const string& gcname, istream& file, int* constrcounter = NULL, bool mult = true); ///< \deprecated should use WCSP::postGlobalCostFunction instead \warning does not work for arity below 4 (use binary or ternary cost functions instead)
 
     GlobalConstraint* postGlobalCostFunction(int* scopeIndex, int arity, const string& name, int* constrcounter = NULL);
@@ -494,7 +523,8 @@ public:
         const vector<WeightedObjInt>& accepting_States,
         const vector<DFATransition>& Wtransitions); ///< \deprecated
     void postWRegular(int* scopeIndex, int arity, int nbStates, vector<pair<int, Cost>> initial_States, vector<pair<int, Cost>> accepting_States, int** Wtransitions, vector<Cost> transitionsCosts); ///< \deprecated post a weighted regular cost function decomposed as a cost function network
-    int postWAllDiff(int* scopeIndex, int arity, const string& semantics, const string& propagator, Cost baseCost); ///< \brief post a soft alldifferent cost function
+    int postWAllDiff(vector<int>& scope, const string& semantics, const string& propagator, Cost baseCost) {return postWAllDiff(scope.data(), scope.size(), semantics, propagator, baseCost);} ///< \brief post a soft alldifferent cost function
+    int postWAllDiff(int* scopeIndex, int arity, const string& semantics, const string& propagator, Cost baseCost); ///< \deprecated
     void postWAllDiff(int* scopeIndex, int arity, string semantics, Cost baseCost); ///< \deprecated post a soft alldifferent cost function decomposed as a cost function network
     int postWGcc(int* scopeIndex, int arity, const string& semantics, const string& propagator, Cost baseCost,
         const vector<BoundedObjValue>& values); ///< \brief post a soft global cardinality cost function

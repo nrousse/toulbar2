@@ -93,16 +93,17 @@ public:
     int getTrueDegree();
     Double getMaxElimSize(); /// \brief returns estimated size of the resulting cost function (including this variable) to eliminate itself
     Long getWeightedDegree();
-    void resetWeightedDegree();
     DLink<ConstraintLink>* link(Constraint* c, int index);
     void sortConstraints();
     virtual void eliminate(){};
 
+    bool isGlobal();
     BinaryConstraint* getConstr(Variable* x);
     TernaryConstraint* getConstr(Variable* x, Variable* y);
     TernaryConstraint* existTernary();
     double strongLinkedby(Variable*& strvar, TernaryConstraint*& tctr1, TernaryConstraint*& tctr2);
     void deconnect(DLink<ConstraintLink>* link, bool reuse = false);
+    void deconnect(); /// \brief deconnects temporally a variable from the problem (i.e., deconnects all its constraints and assigns to its support value)
 
     void projectLB(Cost cost);
 

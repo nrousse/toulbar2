@@ -111,6 +111,14 @@ void Variable::deconnect(DLink<ConstraintLink>* link, bool reuse)
     }
 }
 
+void Variable::deconnect()
+{
+    for (ConstraintList::iterator iter = constrs.begin(); iter != constrs.end(); ++iter) {
+        (*iter).constr->deconnect();
+    }
+    assign(getSupport());
+}
+
 int Variable::getTrueDegree()
 {
     //	if (constrs.getSize() >= ToulBar2::weightedDegree) return getDegree(); ///\warning returns an approximate degree if the constraint list is too large!
@@ -171,15 +179,6 @@ Long Variable::getWeightedDegree()
             res--; // do not count unused separators
     }
     return res;
-}
-
-void Variable::resetWeightedDegree()
-{
-    for (ConstraintList::iterator iter = constrs.begin(); iter != constrs.end(); ++iter) {
-        if ((*iter).constr->isSep())
-            continue;
-        (*iter).constr->resetConflictWeight();
-    }
 }
 
 void Variable::conflict()
@@ -264,6 +263,17 @@ void Variable::propagateIncDec(int incdec)
             (*iter).constr->decrease((*iter).scopeIndex);
         }
     }
+}
+
+// returns true if there is a global cost function currently linked to this variable
+bool Variable::isGlobal()
+{
+    for (ConstraintList::iterator iter = constrs.begin(); iter != constrs.end(); ++iter) {
+        if ((*iter).constr->isGlobal()) {
+            return true;
+        }
+    }
+    return false;
 }
 
 // Looks for the constraint that links this variable with x

@@ -48,14 +48,14 @@ void VACVariable::init()
 //void VACVariable::remove(Value value)
 //{
 //    if (ToulBar2::singletonConsistency)
-//        vac->singleton.insert(MAX_DOMAIN_SIZE * wcspIndex + value);
+//        vac->singleton.insert(wcsp->getMaxDomainSize() * wcspIndex + value);
 //    EnumeratedVariable::remove(value);
 //}
 //
 //void VACVariable::removeFast(Value value)
 //{
 //    if (ToulBar2::singletonConsistency)
-//        vac->singleton.insert(MAX_DOMAIN_SIZE * wcspIndex + value);
+//        vac->singleton.insert(wcsp->getMaxDomainSize() * wcspIndex + value);
 //    EnumeratedVariable::removeFast(value);
 //}
 //
@@ -63,7 +63,7 @@ void VACVariable::init()
 //{
 //    if (ToulBar2::singletonConsistency)
 //        for (int i = inf; i <= newInf; i++)
-//            vac->singleton.insert(MAX_DOMAIN_SIZE * wcspIndex + i);
+//            vac->singleton.insert(wcsp->getMaxDomainSize() * wcspIndex + i);
 //    EnumeratedVariable::increase(newInf);
 //}
 //
@@ -71,7 +71,7 @@ void VACVariable::init()
 //{
 //    if (ToulBar2::singletonConsistency)
 //        for (int i = sup; i >= newSup; i--)
-//            vac->singleton.insert(MAX_DOMAIN_SIZE * wcspIndex + i);
+//            vac->singleton.insert(wcsp->getMaxDomainSize() * wcspIndex + i);
 //    EnumeratedVariable::decrease(newSup);
 //}
 
@@ -105,7 +105,7 @@ bool VACVariable::averaging()
                 assert(cmin < Top);
                 Double mean = to_double(cmin + cu) / 2.;
                 Double extc = to_double(cu) - mean;
-                if (abs(extc) >= 1) {
+                if (std::abs(extc) >= 1) {
                     Cost costi = (Long)extc;
                     for (iterator itx = x->begin(); itx != x->end(); ++itx) {
                         bctr->addcost(this, x, *it, *itx, costi);
@@ -136,7 +136,7 @@ bool VACVariable::averaging()
                 assert(cmin < Top);
                 Double mean = to_double(cmin + cu) / 2.;
                 Double extc = to_double(cu) - mean;
-                if (abs(extc) >= 1) {
+                if (std::abs(extc) >= 1) {
                     Cost costi = (Long)extc;
                     for (iterator itx = x->begin(); itx != x->end(); ++itx) {
                         for (iterator ity = y->begin(); ity != y->end(); ++ity) {
@@ -169,7 +169,7 @@ bool VACVariable::averaging()
                 //				assert(cmin < Top);
                 Double mean = to_double(cmin + cu) / 2.;
                 Double extc = to_double(cu) - mean;
-                if (abs(extc) >= 1) {
+                if (std::abs(extc) >= 1) {
                     Cost costi = (Cost)extc;
                     nctr->addtoTuples(this, *it, costi);
                     if (mean > to_double(cu))

@@ -66,7 +66,7 @@ public:
             fromElim2->incConflictWeight(from);
     }
     void incConflictWeight(Long incval) { conflictWeight += incval; }
-    virtual void resetConflictWeight() { tight = -1; conflictWeight = 1 + ((ToulBar2::weightedTightness) ? getTightness() : 0); } // side-effect: recompute tightness if needed
+    virtual void resetConflictWeight() { conflictWeight = 1 + ((ToulBar2::weightedTightness) ? getTightness() : 0); } // side-effect: recompute tightness if needed
     void elimFrom(Constraint* from1, Constraint* from2 = NULL)
     {
         fromElim1 = from1;
@@ -74,6 +74,7 @@ public:
     }
 
     double tight;
+    void resetTightness() { tight = -1; }
     double getTightness()
     {
         if (tight < 0)
@@ -331,6 +332,8 @@ public:
     static bool cmpConstraintDACTightness(DLink<ConstraintLink>* c1, DLink<ConstraintLink>* c2);
     static bool cmpConstraintTightnessDAC(Constraint* c1, Constraint* c2);
     static bool cmpConstraintTightnessDAC(DLink<ConstraintLink>* c1, DLink<ConstraintLink>* c2);
+    static bool cmpConstraintLAG(Constraint* c1, Constraint* c2);
+    static bool cmpConstraintLAG(DLink<ConstraintLink>* c1, DLink<ConstraintLink>* c2);
 
     // sort a list of constraints
     static int cmpConstraint(Constraint* c1, Constraint* c2);

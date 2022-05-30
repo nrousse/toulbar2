@@ -1,13 +1,15 @@
 /** \file tb2vac.cpp
  *  \brief VAC implementation for binary cost functions.
  *
- *      \defgroup VAC Virtual Arc Consistency enforcing
+ *  \defgroup VAC Virtual Arc Consistency enforcing
  *  The three phases of VAC are enforced in three different "Pass".
  *  Bool(P) is never built. Instead specific functions (getVACCost) booleanize the WCSP on the fly.
- *  The domain variables of Bool(P) are the original variable domains (saved and restored using trailing at each iteration) 
+ *  The domain variables of Bool(P) are the original variable domains (saved and restored using trailing at each iteration).
  *  All the counter data-structures (k) are timestamped to avoid clearing them at each iteration.
- *  \note Simultaneously AC (and potentially DAC, EAC) are maintained by proper queuing.
- *  \see <em> Soft Arc Consistency Revisited. </em> Cooper et al. Artificial Intelligence. 2010.
+ *
+ *  Note : Simultaneously AC (and potentially DAC, EAC) are maintained by proper queuing.
+ *
+ *  See : <em> Soft Arc Consistency Revisited. </em> Cooper et al. Artificial Intelligence. 2010.
  */
 
 #include <math.h> /* atan2 */
@@ -831,14 +833,14 @@ void VACExtension::iniSingleton()
     for (unsigned int i = 0; i < wcsp->numberOfVariables(); i++) {
         int size = wcsp->getDomainSize(i);
         for (int a = 0; a < size; a++)
-            singletonI.insert(MAX_DOMAIN_SIZE * i + a);
+            singletonI.insert(wcsp->getMaxDomainSize() * i + a);
     }
 }
 
 void VACExtension::updateSingleton()
 {
-    set<int>& s1 = singleton;
-    set<int> s2(singletonI);
+    set<Long>& s1 = singleton;
+    set<Long> s2(singletonI);
     singletonI.clear();
     set_intersection(s1.begin(), s1.end(),
         s2.begin(), s2.end(),
@@ -848,11 +850,11 @@ void VACExtension::updateSingleton()
 
 void VACExtension::removeSingleton()
 {
-    set<int>& s = singletonI;
-    set<int>::iterator it = s.begin();
+    set<Long>& s = singletonI;
+    set<Long>::iterator it = s.begin();
     while (it != s.end()) {
-        int ivar = *it / MAX_DOMAIN_SIZE;
-        Value a = *it % MAX_DOMAIN_SIZE;
+        int ivar = *it / wcsp->getMaxDomainSize();
+        Value a = *it % wcsp->getMaxDomainSize();
         Variable* var = wcsp->getVar(ivar);
         var->remove(a);
         var->queueNC();

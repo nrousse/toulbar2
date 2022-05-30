@@ -61,8 +61,8 @@ namespace py = pybind11;
 PYBIND11_MODULE(pytb2, m)
 {
     m.def("init", []() { tb2init(); }); // must be called at the very beginning
-    m.attr("MAX_COST") = py::cast(MAX_COST);
-    m.attr("MIN_COST") = py::cast(MIN_COST);
+    m.attr("MAX_COST") = py::int_(MAX_COST);
+    m.attr("MIN_COST") = py::int_(MIN_COST);
 
     py::register_exception<Contradiction>(m, "Contradiction");
     py::register_exception<InternalError>(m, "InternalError");
@@ -143,6 +143,8 @@ PYBIND11_MODULE(pytb2, m)
         .def_readwrite_static("qpbo", &ToulBar2::qpbo)
         .def_readwrite_static("qpboQuadraticCoefMultiplier", &ToulBar2::qpboQuadraticCoefMultiplier)
         .def_readwrite_static("opb", &ToulBar2::opb)
+        .def_readwrite_static("addAMOConstraints", &ToulBar2::addAMOConstraints)
+        .def_readwrite_static("knapsackDP", &ToulBar2::knapsackDP)
         .def_readwrite_static("divNbSol", &ToulBar2::divNbSol)
         .def_readwrite_static("divBound", &ToulBar2::divBound)
         .def_readwrite_static("divWidth", &ToulBar2::divWidth)
@@ -165,11 +167,12 @@ PYBIND11_MODULE(pytb2, m)
         .def_readwrite_static("uaieval", &ToulBar2::uaieval)
         .def_readwrite_static("stdin_format", &ToulBar2::stdin_format)
         .def_readwrite_static("startCpuTime", &ToulBar2::startCpuTime)
+        .def_readwrite_static("startRealTime", &ToulBar2::startRealTime)
+        .def_readwrite_static("startRealTimeAfterPreProcessing", &ToulBar2::startRealTimeAfterPreProcessing)
         .def_readwrite_static("splitClusterMaxSize", &ToulBar2::splitClusterMaxSize)
         .def_readwrite_static("boostingBTD", &ToulBar2::boostingBTD)
         .def_readwrite_static("maxSeparatorSize", &ToulBar2::maxSeparatorSize)
         .def_readwrite_static("minProperVarSize", &ToulBar2::minProperVarSize)
-        .def_readwrite_static("smallSeparatorSize", &ToulBar2::smallSeparatorSize)
         .def_readwrite_static("Berge_Dec", &ToulBar2::Berge_Dec)
         .def_readwrite_static("learning", &ToulBar2::learning)
         //        .def_readwrite_static("interrupted", &ToulBar2::interrupted) // pybind11 not compatible with type atomic<bool>?
@@ -201,6 +204,9 @@ PYBIND11_MODULE(pytb2, m)
         .def_readwrite_static("hbfsCPLimit", &ToulBar2::hbfsCPLimit)
         .def_readwrite_static("hbfsOpenNodeLimit", &ToulBar2::hbfsOpenNodeLimit)
         .def_readwrite_static("eps", &ToulBar2::eps)
+#ifdef OPENMPI
+        .def_readwrite_static("burst", &ToulBar2::burst)
+#endif
         .def_readwrite_static("epsFilename", &ToulBar2::epsFilename)
         .def_readwrite_static("verifyOpt", &ToulBar2::verifyOpt)
         .def_readwrite_static("verifiedOptimum", &ToulBar2::verifiedOptimum);
@@ -240,6 +246,7 @@ PYBIND11_MODULE(pytb2, m)
         .def("getDDualBound", &WeightedCSP::getDDualBound)
         .def("getDLb", &WeightedCSP::getDLb)
         .def("getDUb", &WeightedCSP::getDUb)
+        .def("setLb", &WeightedCSP::setLb)
         .def("setUb", &WeightedCSP::setUb)
         .def("updateUb", &WeightedCSP::updateUb)
         .def("enforceUb", &WeightedCSP::enforceUb)
@@ -272,6 +279,7 @@ PYBIND11_MODULE(pytb2, m)
         .def("assign", &WeightedCSP::assign)
         .def("remove", &WeightedCSP::remove)
         .def("assignLS", (void (WeightedCSP::*)(vector<int> & varIndexes, vector<Value> & newValues, bool force)) & WeightedCSP::assignLS)
+        .def("deconnect", &WeightedCSP::deconnect)
         .def("getUnaryCost", &WeightedCSP::getUnaryCost)
         .def("getMaxUnaryCost", &WeightedCSP::getMaxUnaryCost)
         .def("getMaxUnaryCostValue", &WeightedCSP::getMaxUnaryCostValue)
@@ -284,6 +292,8 @@ PYBIND11_MODULE(pytb2, m)
         .def("getTrueDegree", &WeightedCSP::getTrueDegree)
         .def("getWeightedDegree", &WeightedCSP::getWeightedDegree)
         .def("resetWeightedDegree", &WeightedCSP::resetWeightedDegree)
+        .def("resetTightness", &WeightedCSP::resetTightness)
+        .def("resetTightnessAndWeightedDegree", &WeightedCSP::resetTightnessAndWeightedDegree)
         .def("preprocessing", &WeightedCSP::preprocessing)
         .def("sortConstraints", &WeightedCSP::sortConstraints) // must be called after creating the model
         .def("getBergeDecElimOrder", &WeightedCSP::getBergeDecElimOrder)
@@ -334,7 +344,7 @@ PYBIND11_MODULE(pytb2, m)
         .def("postWAmong", (int (WeightedCSP::*)(vector<int> & scope, const string& semantics, const string& propagator, Cost baseCost, const vector<Value>& values, int lb, int ub)) & WeightedCSP::postWAmong)
         .def("postWVarAmong", (void (WeightedCSP::*)(vector<int> & scope, const string& semantics, Cost baseCost, vector<Value>& values, int varIndex)) & WeightedCSP::postWVarAmong)
         .def("postWRegular", (int (WeightedCSP::*)(vector<int> & scope, const string& semantics, const string& propagator, Cost baseCost, int nbStates, const vector<WeightedObjInt>& initial_States, const vector<WeightedObjInt>& accepting_States, const vector<DFATransition>& Wtransitions)) & WeightedCSP::postWRegular)
-        //        .def("postWAllDiff", (int (WeightedCSP::*)(int* scopeIndex, int arity, const string& semantics, const string& propagator, Cost baseCost)) &WeightedCSP::postWAllDiff)
+        .def("postWAllDiff", (int (WeightedCSP::*)(vector<int> & scope, const string& semantics, const string& propagator, Cost baseCost)) &WeightedCSP::postWAllDiff)
         //        .def("postWGcc", (int (WeightedCSP::*)(int* scopeIndex, int arity, const string& semantics, const string& propagator, Cost baseCost, const vector<BoundedObjValue>& values)) &WeightedCSP::postWGcc)
         //        .def("postWSame", (int (WeightedCSP::*)(int* scopeIndexG1, int arityG1, int* scopeIndexG2, int arityG2, const string& semantics, const string& propagator, Cost baseCost)) &WeightedCSP::postWSame)
         //        .def("postWSameGcc", &WeightedCSP::postWSameGcc)
@@ -345,6 +355,7 @@ PYBIND11_MODULE(pytb2, m)
         //        .def("postWVarSum", &WeightedCSP::postWVarSum)
         //        .def("postWOverlap", &WeightedCSP::postWOverlap)
         .def("postWDivConstraint", &WeightedCSP::postWDivConstraint)
+        .def("initDivVariables", &WeightedCSP::initDivVariables)
         .def("isGlobal", &WeightedCSP::isGlobal)
         .def("getSolution", (const vector<Value> (WeightedCSP::*)()) & WeightedCSP::getSolution)
         .def("initSolutionCost", &WeightedCSP::initSolutionCost)
@@ -371,6 +382,7 @@ PYBIND11_MODULE(pytb2, m)
     py::class_<WeightedCSPSolver>(m, "Solver")
         .def(py::init([](Cost ub) {
             ToulBar2::startCpuTime = cpuTime();
+            ToulBar2::startRealTime = realTime();
             initCosts();
             if (ToulBar2::seed < 0) { // initialize seed using current time
                 ToulBar2::seed = abs((int)time(NULL) * getpid() * ToulBar2::seed);
@@ -407,7 +419,7 @@ PYBIND11_MODULE(pytb2, m)
                 ToulBar2::uai = 2;
                 ToulBar2::bayesian = true;
             }
-#ifdef XMLFLAG
+#if defined(XMLFLAG) || defined(XMLFLAG3)
             if (strstr(fileName, ".xml")) {
                 ToulBar2::xmlflag = true;
             }

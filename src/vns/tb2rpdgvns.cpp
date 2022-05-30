@@ -50,7 +50,7 @@ bool ReplicatedParallelDGVNS::solve(bool first)
 
     world.barrier(); /* IMPORTANT */
 
-    startTime = cpuTime();
+    ToulBar2::startRealTimeAfterPreProcessing = realTime();
 
     if (world.rank() == MASTER) {
         if (!ToulBar2::vnsParallelSync) {
@@ -73,13 +73,13 @@ bool ReplicatedParallelDGVNS::solve(bool first)
 
     /* Shut down MPI */
     world.barrier(); /* IMPORTANT */
-    double elapsedTime = cpuTime() - startTime;
+    double elapsedTime = realTime() - ToulBar2::startRealTimeAfterPreProcessing;
     double elapsedCPUTime = cpuTime() - ToulBar2::startCpuTime;
     double totalCPUTime = 0.;
     mpi::reduce(world, elapsedCPUTime, totalCPUTime, std::plus<double>(), 0);
     if (ToulBar2::verbose >= 0 && world.rank() == MASTER) { /* use time on master node */
-        cout << "Total CPU time = " << totalCPUTime << " seconds" << endl;
-        cout << "Solving real-time = " << elapsedTime << " seconds (not including preprocessing time)" << endl;
+        cout << "Total CPU time = " << totalCPUTime << " seconds." << endl;
+        cout << "Solving real-time = " << elapsedTime << " seconds (not including reading and preprocessing time)." << endl;
     }
 
     return (bestUb < MAX_COST);
@@ -134,17 +134,18 @@ bool ReplicatedParallelDGVNS::radgvns()
     // Get all clusters from the tree decomposition of constraint graph
     int c = 0;
     if (!complete && bestUb > ToulBar2::vnsOptimum) {
-        for (int p = 0; p < npr + 1; ++p) if (p != MASTER) {
-            pr pr_p = pr();
-            pr_p.cl = c;
-            pr_p.k = ToulBar2::vnsKmin;
-            pr_p.lds = ToulBar2::vnsLDSmin;
-            pr_p.synch = false;
-            vecPR.push_back(pr_p);
-            SolMsg solmsg(pr_p.cl, pr_p.k, pr_p.lds, bestUb, bestSolution);
-            world.send(p, WORKTAG, solmsg);
-            c = (c + 1) % file.size();
-        }
+        for (int p = 0; p < npr + 1; ++p)
+            if (p != MASTER) {
+                pr pr_p = pr();
+                pr_p.cl = c;
+                pr_p.k = ToulBar2::vnsKmin;
+                pr_p.lds = ToulBar2::vnsLDSmin;
+                pr_p.synch = false;
+                vecPR.push_back(pr_p);
+                SolMsg solmsg(pr_p.cl, pr_p.k, pr_p.lds, bestUb, bestSolution);
+                world.send(p, WORKTAG, solmsg);
+                c = (c + 1) % file.size();
+            }
     }
     Cost pbestUb = MAX_COST;
     map<int, Value> pbestSolution;
@@ -164,9 +165,10 @@ bool ReplicatedParallelDGVNS::radgvns()
         }
     }
 
-    for (int p = 0; p < world.size(); ++p) if (p != MASTER) {
-        world.isend(p, DIETAG, SolMsg());
-    }
+    for (int p = 0; p < world.size(); ++p)
+        if (p != MASTER) {
+            world.isend(p, DIETAG, SolMsg());
+        }
 
     return complete && (bestUb < MAX_COST);
 }
@@ -238,11 +240,12 @@ bool ReplicatedParallelDGVNS::rsdgvns()
         int k = ToulBar2::vnsKmin;
         while (npr && !complete && k <= ToulBar2::vnsKmax && bestUb > ToulBar2::vnsOptimum) {
 
-            for (int p = 0; p < npr + 1; ++p) if (p != MASTER) {
-                SolMsg solmsg(c, k, lds, bestUb, bestSolution);
-                world.send(p, WORKTAG, solmsg);
-                c = (c + 1) % file.size();
-            }
+            for (int p = 0; p < npr + 1; ++p)
+                if (p != MASTER) {
+                    SolMsg solmsg(c, k, lds, bestUb, bestSolution);
+                    world.send(p, WORKTAG, solmsg);
+                    c = (c + 1) % file.size();
+                }
 
             int finished = 0;
             Cost pBestUb;
@@ -325,9 +328,10 @@ bool ReplicatedParallelDGVNS::rsdgvns()
         }
     }
 
-    for (int p = 0; p < world.size(); ++p) if (p != MASTER) {
-        world.isend(p, DIETAG, SolMsg());
-    }
+    for (int p = 0; p < world.size(); ++p)
+        if (p != MASTER) {
+            world.isend(p, DIETAG, SolMsg());
+        }
 
     return complete && (bestUb < MAX_COST);
 }
@@ -568,7 +572,8 @@ void ReplicatedParallelDGVNS::DumpBestSol(bool improved)
     wcsp->setSolution(bestUb, &bestSolution);
     if (ToulBar2::vnsOutput) {
         //cout << "# ------------------------------------------" << endl;
-        ToulBar2::vnsOutput << "InstanceVnsBestTime " << cpuTime() - startTime << endl;
+        double elapsedTime = realTime() - ToulBar2::startRealTime;
+        ToulBar2::vnsOutput << "InstanceVnsBestTime " << elapsedTime << endl;
         ToulBar2::vnsOutput << "Cost " << std::fixed << std::setprecision(ToulBar2::decimalPoint) << wcsp->Cost2ADCost(bestUb) << std::setprecision(DECIMAL_POINT) << endl;
         ToulBar2::vnsOutput << "Solution ";
         for (map<int, Value>::iterator it = bestSolution.begin();
@@ -589,10 +594,11 @@ void ReplicatedParallelDGVNS::DumpBestSol(bool improved)
         //        cout << "# ------------------------------------------" << endl;
     }
     if (improved && (ToulBar2::verbose >= 0 || ToulBar2::showSolutions)) {
+        double elapsedTime = realTime() - ToulBar2::startRealTime;
         if (!ToulBar2::bayesian)
-            cout << "New solution: " << std::fixed << std::setprecision(ToulBar2::decimalPoint) << wcsp->Cost2ADCost(bestUb) << std::setprecision(DECIMAL_POINT) << " in " << (cpuTime() - startTime) << " seconds." << endl;
+            cout << "New solution: " << std::fixed << std::setprecision(ToulBar2::decimalPoint) << wcsp->Cost2ADCost(bestUb) << std::setprecision(DECIMAL_POINT) << " in " << elapsedTime << " seconds." << endl;
         else
-            cout << "New solution: " << bestUb << " energy: " << -(wcsp->Cost2LogProb(bestUb) + ToulBar2::markov_log) << " prob: " << wcsp->Cost2Prob(bestUb) * Exp(ToulBar2::markov_log) << " in " << cpuTime() - startTime << " seconds." << endl;
+            cout << "New solution: " << bestUb << " energy: " << -(wcsp->Cost2LogProb(bestUb) + ToulBar2::markov_log) << " prob: " << wcsp->Cost2Prob(bestUb) * Exp(ToulBar2::markov_log) << " in " << elapsedTime << " seconds." << endl;
     }
     if (improved && ToulBar2::showSolutions) {
         wcsp->printSolution();
@@ -604,7 +610,8 @@ void ReplicatedParallelDGVNS::DumpBestSol(bool improved)
         fprintf(ToulBar2::solutionFile, "\n");
     }
     if (ToulBar2::xmlflag) {
-        cout << "o " << bestUb << endl;
+        cout << "o " << std::fixed << std::setprecision(0) << wcsp->Cost2ADCost(bestUb) << std::setprecision(DECIMAL_POINT) << endl; //" ";
+        ((WCSP*)wcsp)->solution_XML(false);
     }
     if (ToulBar2::maxsateval) {
         cout << "o " << bestUb << endl;

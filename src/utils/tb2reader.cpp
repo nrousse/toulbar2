@@ -78,9 +78,13 @@ typedef struct {
  ...
  <Domain size of variable with index N - 1>
  \endverbatim
- * \note domain values range from zero to \e size-1
- * \note a negative domain size is interpreted as a variable with an interval domain in \f$[0,-size-1]\f$
- * \warning variables with interval domains are restricted to arithmetic and disjunctive cost functions in intention (see below)
+ *
+ * Note : domain values range from zero to \e size-1
+ *
+ * Note : a negative domain size is interpreted as a variable with an interval domain in \f$[0,-size-1]\f$
+ *
+ * Warning : variables with interval domains are restricted to arithmetic and disjunctive cost functions in intention (see below)
+ *
  * - General definition of cost functions
  *   - Definition of a cost function in extension
  * \verbatim
@@ -98,7 +102,9 @@ typedef struct {
  <Index of the value assigned to the last variable in the scope>
  <Cost of the tuple>
  \endverbatim
- * \note Shared cost function: A cost function in extension can be shared by several cost functions with the same arity (and same domain sizes) but different scopes. In order to do that, the cost function to be shared must start by a negative scope size. Each shared cost function implicitly receives an occurrence number starting from 1 and incremented at each new shared definition. New cost functions in extension can reuse some previously defined shared cost functions in extension by using a negative number of tuples representing the occurrence number of the desired shared cost function. Note that default costs should be the same in the shared and new cost functions. Here is an example of 4 variables with domain size 4 and one AllDifferent hard constraint decomposed into 6 binary constraints.
+ *
+ * Note : Shared cost function: A cost function in extension can be shared by several cost functions with the same arity (and same domain sizes) but different scopes. In order to do that, the cost function to be shared must start by a negative scope size. Each shared cost function implicitly receives an occurrence number starting from 1 and incremented at each new shared definition. New cost functions in extension can reuse some previously defined shared cost functions in extension by using a negative number of tuples representing the occurrence number of the desired shared cost function. Note that default costs should be the same in the shared and new cost functions. Here is an example of 4 variables with domain size 4 and one AllDifferent hard constraint decomposed into 6 binary constraints.
+ *
  *   - Shared CF used inside a small example in wcsp format:
  * \code
  AllDifferentDecomposedIntoBinaryConstraints 4 4 6 1
@@ -182,11 +188,13 @@ typedef struct {
  *     .
  * .
  *
- * \warning The decomposition of wsum and wvarsum may use an exponential size (sum of domain sizes).
- * \warning  \e list_size1 and \e list_size2 must be equal in \e ssame.
- * \warning  Cost functions defined in intention cannot be shared.
+ * Warning : The decomposition of wsum and wvarsum may use an exponential size (sum of domain sizes).
  *
- * \note More about network-based global cost functions can be found here https://metivier.users.greyc.fr/decomposable/
+ * Warning :  \e list_size1 and \e list_size2 must be equal in \e ssame.
+ *
+ * Warning :  Cost functions defined in intention cannot be shared.
+ *
+ * Note More about network-based global cost functions can be found on ./misc/doc/DecomposableGlobalCostFunctions.html
  *
  * Examples:
  * - quadratic cost function \f$x0 * x1\f$ in extension with variable domains \f$\{0,1\}\f$ (equivalent to a soft clause \f$\neg x0 \vee \neg x1\f$): \code 2 0 1 0 1 1 1 1 \endcode
@@ -1403,12 +1411,15 @@ void CFNStreamReader::readGlobalCostFunction(vector<int>& scope, const string& f
                 cerr << "Error: the clique global constraint does not accept RHS different from 1 for now at line" << line << endl;
                 throw WrongFileFormat();
             }
+        } else if (funcName == "knapsackc") {
+            string ps = paramsStream.str();
+            this->wcsp->postKnapsackConstraint(scopeArray, arity, paramsStream, false, true, true);
         } else if (funcName == "knapsackp") {
             string ps = paramsStream.str();
-            this->wcsp->postKnapsackConstraint(scopeArray, arity, paramsStream, false, true);
+            this->wcsp->postKnapsackConstraint(scopeArray, arity, paramsStream, false, true, false);
         } else if (funcName == "knapsack") {
             string ps = paramsStream.str();
-            this->wcsp->postKnapsackConstraint(scopeArray, arity, paramsStream, false, false);
+            this->wcsp->postKnapsackConstraint(scopeArray, arity, paramsStream, false, false, false);
         } else { // monolithic
             int nbconstr; // unused int for pointer ref
             this->wcsp->postGlobalConstraint(scopeArray, arity, funcName, paramsStream, &nbconstr, false);
@@ -2158,19 +2169,14 @@ Cost WCSP::read_wcsp(const char* fileName)
         read_legacy(fileName);
     }
 
+    if (ToulBar2::addAMOConstraints) {
+        addAMOConstraints();
+        ToulBar2::addAMOConstraints_=false;
+    }
+
     // Diverse variables structure and variables allocation and initialization
     if (ToulBar2::divNbSol > 1) {
-        for (auto var : vars) {
-            if (var->unassigned() && var->getName().rfind(IMPLICIT_VAR_TAG, 0) != 0) {
-                if (var->enumerated()) {
-                    divVariables.push_back(var);
-                } else {
-                    cerr << "Error: cannot control diversity of non enumerated variable: " << var->getName() << endl;
-                    throw BadConfiguration();
-                }
-            }
-        }
-
+        initDivVariables();
         // Dual variables allocation, only needed for divMethod 0 Dual or 1 Hidden
         if (ToulBar2::divMethod < 2) {
             divVarsId.resize(ToulBar2::divNbSol);
@@ -2373,10 +2379,12 @@ void WCSP::read_legacy(const char* fileName)
                     decomposableGCF->addToCostFunctionNetwork(this);
                 } else if (gcname == "clique") {
                     postCliqueConstraint(scopeIndex, arity, file);
+                } else if (gcname == "knapsackc") {
+                    postKnapsackConstraint(scopeIndex, arity, file, false, true, true);
                 } else if (gcname == "knapsackp") {
-                    postKnapsackConstraint(scopeIndex, arity, file, false, true);
+                    postKnapsackConstraint(scopeIndex, arity, file, false, true, false);
                 } else if (gcname == "knapsack") {
-                    postKnapsackConstraint(scopeIndex, arity, file, false, false);
+                    postKnapsackConstraint(scopeIndex, arity, file, false, false, false);
                 } else { // monolithic global cost functions
                     postGlobalConstraint(scopeIndex, arity, gcname, file, &nbconstr);
                 }
@@ -2534,18 +2542,24 @@ void WCSP::read_legacy(const char* fileName)
                     EnumeratedVariable* z = (EnumeratedVariable*)vars[k];
                     vector<Cost> costs((size_t)x->getDomainInitSize() * (size_t)y->getDomainInitSize() * (size_t)z->getDomainInitSize(), MIN_COST);
                     postTernaryConstraint(i, j, k, costs); //generate a zero-cost ternary constraint instead that will absorb all its binary hard constraints
+                } else if (gcname == "knapsackc") {
+                    int scopeIndex[3];
+                    scopeIndex[0] = i;
+                    scopeIndex[1] = j;
+                    scopeIndex[2] = k;
+                    postKnapsackConstraint(scopeIndex, arity, file, false, true, true);
                 } else if (gcname == "knapsackp") {
                     int scopeIndex[3];
                     scopeIndex[0] = i;
                     scopeIndex[1] = j;
                     scopeIndex[2] = k;
-                    postKnapsackConstraint(scopeIndex, arity, file, false, true);
+                    postKnapsackConstraint(scopeIndex, arity, file, false, true, false);
                 } else if (gcname == "knapsack") {
                     int scopeIndex[3];
                     scopeIndex[0] = i;
                     scopeIndex[1] = j;
                     scopeIndex[2] = k;
-                    postKnapsackConstraint(scopeIndex, arity, file, false, false);
+                    postKnapsackConstraint(scopeIndex, arity, file, false, false, false);
                 } else { // monolithic global cost functions
                     postGlobalConstraint(scopeIndex, arity, gcname, file, &nbconstr);
                 }
@@ -2648,16 +2662,21 @@ void WCSP::read_legacy(const char* fileName)
                     file >> funcparam5;
                     file >> funcparam6;
                     postSpecialDisjunction(i, j, funcparam1, funcparam2, funcparam3, funcparam4, MULT(funcparam5, K), MULT(funcparam6, K));
+                } else if (funcname == "knapsackc") {
+                    int scopeIndex[2];
+                    scopeIndex[0] = i;
+                    scopeIndex[1] = j;
+                    postKnapsackConstraint(scopeIndex, arity, file, false, true, true);
                 } else if (funcname == "knapsackp") {
                     int scopeIndex[2];
                     scopeIndex[0] = i;
                     scopeIndex[1] = j;
-                    postKnapsackConstraint(scopeIndex, arity, file, false, true);
+                    postKnapsackConstraint(scopeIndex, arity, file, false, true, false);
                 } else if (funcname == "knapsack") {
                     int scopeIndex[2];
                     scopeIndex[0] = i;
                     scopeIndex[1] = j;
-                    postKnapsackConstraint(scopeIndex, arity, file, false, false);
+                    postKnapsackConstraint(scopeIndex, arity, file, false, false, false);
                 } else {
                     int scopeIndex[2];
                     scopeIndex[0] = i;
@@ -2687,14 +2706,18 @@ void WCSP::read_legacy(const char* fileName)
                     if (gcname.substr(0, 1) == "w") { // global cost functions decomposed into a cost function network
                         DecomposableGlobalCostFunction* decomposableGCF = DecomposableGlobalCostFunction::FactoryDGCF(gcname, arity, scopeIndex, file);
                         decomposableGCF->addToCostFunctionNetwork(this);
+                    } else if (gcname == "knapsackc") {
+                        int scopeIndex[1];
+                        scopeIndex[0] = i;
+                        postKnapsackConstraint(scopeIndex, arity, file, false, true, true);
                     } else if (gcname == "knapsackp") {
                         int scopeIndex[1];
                         scopeIndex[0] = i;
-                        postKnapsackConstraint(scopeIndex, arity, file, false, true);
+                        postKnapsackConstraint(scopeIndex, arity, file, false, true, false);
                     } else if (gcname == "knapsack") {
                         int scopeIndex[1];
                         scopeIndex[0] = i;
-                        postKnapsackConstraint(scopeIndex, arity, file, false, false);
+                        postKnapsackConstraint(scopeIndex, arity, file, false, false, false);
                     } else { // monolithic global cost functions
                         postGlobalConstraint(scopeIndex, arity, gcname, file, &nbconstr);
                     }
@@ -3276,13 +3299,15 @@ void WCSP::solution_UAI(Cost res)
     //	}
 }
 
-#ifdef XMLFLAG
+#if defined(XMLFLAG)
 #include "./xmlcsp/xmlcsp.h"
+#elif defined(XMLFLAG3)
+#include "./xmlcsp3/xmlcsp3.h"
 #endif
 
 void WCSP::read_XML(const char* fileName)
 {
-#ifdef XMLFLAG
+#if defined(XMLFLAG)
     MyCallback xmlCallBack;
     xmlCallBack.wcsp = this;
     xmlCallBack.fname = string(fileName);
@@ -3297,6 +3322,18 @@ void WCSP::read_XML(const char* fileName)
         cerr << "\t" << e.what() << endl;
         throw WrongFileFormat();
     }
+#elif defined(XMLFLAG3)
+    MySolverCallbacks xmlCallBack; // my interface between the parser and the solver
+    xmlCallBack.problem = this;
+    try {
+        XCSP3CoreParser parser(&xmlCallBack);
+        parser.parse(fileName); // fileName is a string
+    } catch (exception &e) {
+        cout.flush();
+        cerr << "\n\tUnexpected exception in XML XCSP3 parsing\n";
+        cerr << "\t" << e.what() << endl;
+        throw WrongFileFormat();
+    }
 #else
     cerr << "\nXML format without including in Makefile flag XMLFLAG and files ./xmlcsp\n"
          << endl;
@@ -3306,12 +3343,15 @@ void WCSP::read_XML(const char* fileName)
 
 void WCSP::solution_XML(bool opt)
 {
-#ifdef XMLFLAG
+#if defined(XMLFLAG) || defined(XMLFLAG3)
     if (!ToulBar2::xmlflag)
         return;
 
-    if (opt)
+    if (opt) {
         cout << "s OPTIMUM FOUND" << endl;
+    } else {
+        cout << "s SATISFIABLE" << endl;
+    }
 
     //ofstream fsol;
     //ifstream sol;
@@ -3322,13 +3362,30 @@ void WCSP::solution_XML(bool opt)
 
     freopen(NULL, "r", ToulBar2::solutionFile);
     cout << "v ";
+#ifdef XMLFLAG3
+    cout << "<instantiation type=\"" << ((opt)?"optimum":"solution") << "\" cost=\"" << std::fixed << std::setprecision(0) << getDPrimalBound() << std::setprecision(DECIMAL_POINT) << "\"> <list>";
+    for (unsigned int i = 0; i < vars.size(); i++) {
+        if (getName(i).rfind(IMPLICIT_VAR_TAG, 0) != 0) {
+            cout << " " << getName(i);
+        }
+    }
+    cout << " </list> <values>";
+#endif
     for (unsigned int i = 0; i < vars.size(); i++) {
         int value;
-        //soll >> value;
         fscanf(ToulBar2::solutionFile, "%d", &value);
+#ifdef XMLFLAG
         int index = ((EnumeratedVariable*)getVar(i))->toIndex(value);
         cout << Doms[varsDom[i]][index] << " ";
+#else // XCSP3
+        if (getName(i).rfind(IMPLICIT_VAR_TAG, 0) != 0) {
+            cout << " " << value;
+        }
+#endif
     }
+#ifdef XMLFLAG3
+    cout << " </values> </instantiation>";
+#endif
     cout << endl;
     freopen(NULL, "w", ToulBar2::solutionFile);
 
@@ -3346,7 +3403,7 @@ void WCSP::read_wcnf(const char* fileName)
     if (ToulBar2::gz) {
         zfile.push(boost::iostreams::gzip_decompressor());
     } else if (ToulBar2::xz) {
-#ifndef NO_LZMA 
+#ifndef NO_LZMA
         zfile.push(boost::iostreams::lzma_decompressor());
 #else
         cerr << "Error: compiling with Boost version 1.65 or higher is needed to allow to read xz compressed cnf/wcnf format files." << endl;
@@ -3543,11 +3600,11 @@ void WCSP::read_wcnf(const char* fileName)
 
 /// \brief minimizes/maximizes \f$ X^t \times W \times X = \sum_{i=1}^N \sum_{j=1}^N W_{ij} \times X_i \times X_j \f$
 /// where W is expressed by its M non-zero triangle matrix terms (W_ij, i<=j, it can be positive or negative float numbers)
-/// \note Quadratic terms for \f$ i < j \f$ are multiplied by 2 (see option -qpmult to change this value) to get a symmetric N*N squared matrix
-/// \note If N is positive, then variable domain values are {0,1}
-/// \note If N is negative, then variable domain values are {1,-1} with value 1 having index 0 and value -1 having index 1 in the output solutions
-/// \note If M is positive then minimizes the quadratic objective function, else maximizes it
-/// \warning It does not allow infinite costs (no forbidden assignments)
+/// Note : Quadratic terms for \f$ i < j \f$ are multiplied by 2 (see option -qpmult to change this value) to get a symmetric N*N squared matrix
+/// Note : If N is positive, then variable domain values are {0,1}
+/// Note : If N is negative, then variable domain values are {1,-1} with value 1 having index 0 and value -1 having index 1 in the output solutions
+/// Note : If M is positive then minimizes the quadratic objective function, else maximizes it
+/// Warning : It does not allow infinite costs (no forbidden assignments)
 void WCSP::read_qpbo(const char* fileName)
 {
     ifstream rfile(fileName, (ToulBar2::gz || ToulBar2::xz) ? (std::ios_base::in | std::ios_base::binary) : (std::ios_base::in));
@@ -3556,7 +3613,7 @@ void WCSP::read_qpbo(const char* fileName)
     if (ToulBar2::gz) {
         zfile.push(boost::iostreams::gzip_decompressor());
     } else if (ToulBar2::xz) {
-#ifndef NO_LZMA 
+#ifndef NO_LZMA
         zfile.push(boost::iostreams::lzma_decompressor());
 #else
         cerr << "Error: compiling with Boost version 1.65 or higher is needed to allow to read xz compressed qpbo format files." << endl;
@@ -3756,8 +3813,8 @@ bool isInteger(string& s) { return string("0123456789+-").find(s[0]) != string::
 /// \param file: input file
 /// \param token: in: previous token, out: new token (read from file or from the end of the previous token)
 /// \param keep: in: relative position to start reading from the previous token (if positive and greater or equal to previous token size then reads from file else if negative subtracts from the end), out: size of the new token
-/// \warning if new token is + or - then replace to +1 or -1
-/// \warning if new token is +varname or -varname then split into +1 varname or -1 varname
+/// Warning : if new token is + or - then replace to +1 or -1
+/// Warning : if new token is +varname or -varname then split into +1 varname or -1 varname
 void readToken(istream& file, string& token, int* keep = NULL)
 {
     if (keep == NULL || *keep >= (int)token.size()) {
@@ -3795,7 +3852,7 @@ void WCSP::read_opb(const char* fileName)
     if (ToulBar2::gz) {
         zfile.push(boost::iostreams::gzip_decompressor());
     } else if (ToulBar2::xz) {
-#ifndef NO_LZMA 
+#ifndef NO_LZMA
         zfile.push(boost::iostreams::lzma_decompressor());
 #else
         cerr << "Error: compiling with Boost version 1.65 or higher is needed to allow to read xz compressed opb format files." << endl;

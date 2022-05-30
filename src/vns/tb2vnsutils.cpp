@@ -45,8 +45,8 @@ void treeClusterFusion(TCDGraph::vertex_descriptor p, TCDGraph::vertex_descripto
     //    int size_res = cg[v].vars.size() + cg[p].vars.size() - varsinter.size();
 
     // si absorber à 90% merge whatever
-    if ((float)varsinter.size() / (float)cg[v].vars.size() >= fabs(ToulBar2::boostingBTD)
-        || (float)varsinter.size() / (float)cg[p].vars.size() >= fabs(ToulBar2::boostingBTD)) {
+    if ((float)varsinter.size() / (float)cg[v].vars.size() >= std::abs(ToulBar2::boostingBTD)
+        || (float)varsinter.size() / (float)cg[p].vars.size() >= std::abs(ToulBar2::boostingBTD)) {
         fusionCluster(v, p, cg);
         //    } else {
         //        // si absorber à 70% merge whatever merged size <= 100
@@ -65,7 +65,7 @@ void treeClusterFusion(TCDGraph::vertex_descriptor p, TCDGraph::vertex_descripto
     }
 }
 
-bool TreeDecRefinement::solve()
+bool TreeDecRefinement::solve(bool first)
 {
     load_decomposition();
     cluster_graph_absorption(m_graph, abs_graph);
