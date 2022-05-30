@@ -40,7 +40,7 @@ RUN python3 -m pip install --upgrade pip wheel setuptools \
 && python3 -m pip install --upgrade more-itertools \
 && python3 -m pip install --upgrade matplotlib \
 && python3 -m pip install --upgrade pandas \
-&& python3 -m pip install --upgrade tensorflow \
+&& python3 -m pip install --upgrade tensorflow-cpu \
 && python3 -m pip install --upgrade keras \
 && python3 -m pip install --upgrade sklearn \
 && python3 -m pip install --upgrade imutils \
