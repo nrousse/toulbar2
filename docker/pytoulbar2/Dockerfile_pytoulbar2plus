@@ -22,6 +22,16 @@
 #
 #   docker run -v $PWD:/WORK -ti pytoulbar2plus-docker /bin/bash
 #
+# -----------------------------------------------------------------------------
+#
+# Error :
+# docker run -it pytoulbar2plus-docker bash -c "python3 -c 'import cv2'"
+# => ImportError: libGL.so.1: cannot open shared object file ...
+#
+# Correction :
+# Additional packages required to run cv2 : 
+# apt-get install ffmpeg libsm6 libxext6 -y 
+#
 ###############################################################################
 
 FROM debian:buster-slim
@@ -31,6 +41,7 @@ RUN apt-get update -yq \
 && apt-get install vim -y \
 && apt-get install python3 -y \
 && apt-get install python3-pip -y \
+&& apt-get install ffmpeg libsm6 libxext6 -y \
 && apt-get clean -y
 
 RUN python3 -m pip install --upgrade pip wheel setuptools \
