@@ -18,4 +18,5 @@ python3 problem.py
 # clean
 rm -fr /WORK/pythonplus
 rm -fr /WORK/cache
+rm -fr /WORK/__pycache__
 

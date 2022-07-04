@@ -46,7 +46,10 @@ RUN python3 -m pip install --upgrade pip wheel setuptools \
 && python3 -m pip install --upgrade imutils \
 && python3 -m pip install --upgrade opencv-python \
 && python3 -m pip install --upgrade opencv-python-headless \
-&& python3 -m pip install --upgrade scikit-image
+&& python3 -m pip install --upgrade scikit-image \
+&& python3 -m pip uninstall opencv-python-headless \
+&& python3 -m pip uninstall opencv-python \
+&& python3 -m pip install opencv-python
 
 RUN mkdir /WORK
 
